@@ -1,0 +1,12 @@
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\bin\Debug\net9.0\SmartAgro.Models.deps.json
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\bin\Debug\net9.0\SmartAgro.Models.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\bin\Debug\net9.0\SmartAgro.Models.pdb
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.csproj.AssemblyReference.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.AssemblyInfoInputs.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.AssemblyInfo.cs
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.csproj.CoreCompileInputs.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\refint\SmartAgro.Models.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.pdb
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\ref\SmartAgro.Models.dll

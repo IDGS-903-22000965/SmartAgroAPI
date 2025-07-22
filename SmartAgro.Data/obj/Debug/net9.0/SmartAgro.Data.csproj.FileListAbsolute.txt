@@ -1,0 +1,17 @@
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Data.deps.json
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Data.runtimeconfig.json
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Data.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Data.pdb
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Models.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\bin\Debug\net9.0\SmartAgro.Models.pdb
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.csproj.AssemblyReference.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.AssemblyInfoInputs.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.AssemblyInfo.cs
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.csproj.CoreCompileInputs.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgr.F9DC0742.Up2Date
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\refint\SmartAgro.Data.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.pdb
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\SmartAgro.Data.genruntimeconfig.cache
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Data\obj\Debug\net9.0\ref\SmartAgro.Data.dll
