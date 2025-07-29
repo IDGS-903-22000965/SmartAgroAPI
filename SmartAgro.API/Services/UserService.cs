@@ -11,13 +11,19 @@ namespace SmartAgro.API.Services
     {
         private readonly UserManager<Usuario> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<UserService> _logger;
 
         public UserService(
             UserManager<Usuario> userManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            IEmailService emailService,
+            ILogger<UserService> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<PaginatedUsersDto> GetUsersAsync(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? roleFilter = null, bool? isActive = null)
@@ -155,10 +161,41 @@ namespace SmartAgro.API.Services
                     return ServiceResult.ErrorResult($"Error al asignar el rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
                 }
 
-                return ServiceResult.SuccessResult("Usuario creado exitosamente");
+                // 📧 ENVIAR CREDENCIALES POR EMAIL SI ES CLIENTE
+                if (createUserDto.Rol == "Cliente")
+                {
+                    try
+                    {
+                        var emailEnviado = await _emailService.EnviarCredencialesClienteAsync(
+                            createUserDto.Email,
+                            createUserDto.Nombre,
+                            createUserDto.Email,
+                            createUserDto.Password
+                        );
+
+                        if (emailEnviado)
+                        {
+                            _logger.LogInformation($"✅ Credenciales enviadas por email a: {createUserDto.Email}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ No se pudieron enviar las credenciales a: {createUserDto.Email}");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        _logger.LogError(emailEx, $"❌ Error al enviar credenciales a: {createUserDto.Email}");
+                        // No fallar la creación del usuario si falla el email
+                    }
+                }
+
+                _logger.LogInformation($"✅ Usuario {createUserDto.Rol} creado: {createUserDto.Email}");
+                return ServiceResult.SuccessResult($"Usuario {createUserDto.Rol.ToLower()} creado exitosamente. " +
+                    (createUserDto.Rol == "Cliente" ? "Las credenciales han sido enviadas por email." : ""));
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"❌ Error al crear usuario: {createUserDto.Email}");
                 return ServiceResult.ErrorResult($"Error al crear usuario: {ex.Message}");
             }
         }
@@ -342,7 +379,36 @@ namespace SmartAgro.API.Services
                     return ServiceResult.ErrorResult(string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
 
-                return ServiceResult.SuccessResult("Contraseña restablecida exitosamente");
+                // 📧 ENVIAR NUEVA CONTRASEÑA POR EMAIL SI ES CLIENTE
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (userRoles.Contains("Cliente"))
+                {
+                    try
+                    {
+                        var emailEnviado = await _emailService.EnviarCredencialesClienteAsync(
+                            user.Email!,
+                            user.Nombre,
+                            user.Email!,
+                            resetPasswordDto.NewPassword
+                        );
+
+                        if (emailEnviado)
+                        {
+                            _logger.LogInformation($"✅ Nueva contraseña enviada por email a: {user.Email}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"⚠️ No se pudo enviar la nueva contraseña a: {user.Email}");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        _logger.LogError(emailEx, $"❌ Error al enviar nueva contraseña a: {user.Email}");
+                    }
+                }
+
+                return ServiceResult.SuccessResult("Contraseña restablecida exitosamente" +
+                    (userRoles.Contains("Cliente") ? ". Las nuevas credenciales han sido enviadas por email." : ""));
             }
             catch (Exception ex)
             {

@@ -11,6 +11,8 @@ namespace SmartAgro.API.Controllers
     [Authorize(Roles = "Admin")]
     public class MateriaPrimaController : ControllerBase
     {
+        private readonly ICosteoFifoService _costeoFifoService;
+
         private readonly IMateriaPrimaService _materiaPrimaService;
 
         public MateriaPrimaController(IMateriaPrimaService materiaPrimaService)
@@ -506,6 +508,19 @@ public class MovimientoStockDto
                     message = "Error al obtener materias primas bajo stock",
                     error = ex.Message
                 });
+            }
+        }
+        [HttpGet("{id}/costeo/fifo")]
+        public async Task<IActionResult> CalcularCostoFifo(int id, [FromQuery] decimal cantidad)
+        {
+            try
+            {
+                var costo = await _costeoFifoService.ObtenerCostoSalidaFifoAsync(id, cantidad);
+                return Ok(new { success = true, costo });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
     }

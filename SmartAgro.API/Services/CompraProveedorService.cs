@@ -126,17 +126,12 @@ namespace SmartAgro.API.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Verificar que el proveedor existe
                 var proveedor = await _context.Proveedores.FindAsync(createCompraDto.ProveedorId);
                 if (proveedor == null)
-                {
                     return ServiceResult.ErrorResult("Proveedor no encontrado");
-                }
 
-                // Generar número de compra
                 var numeroCompra = await GenerarNumeroCompraAsync();
 
-                // Crear la compra
                 var compra = new CompraProveedor
                 {
                     NumeroCompra = numeroCompra,
@@ -144,21 +139,18 @@ namespace SmartAgro.API.Services
                     FechaCompra = createCompraDto.FechaCompra,
                     Estado = "Pendiente",
                     Observaciones = createCompraDto.Observaciones,
-                    Total = 0 // Se calculará después
+                    Total = 0
                 };
 
                 _context.ComprasProveedores.Add(compra);
                 await _context.SaveChangesAsync();
 
-                // Crear los detalles
                 decimal totalCompra = 0;
                 foreach (var detalle in createCompraDto.Detalles)
                 {
                     var materiaPrima = await _context.MateriasPrimas.FindAsync(detalle.MateriaPrimaId);
                     if (materiaPrima == null)
-                    {
-                        return ServiceResult.ErrorResult($"Materia prima con ID {detalle.MateriaPrimaId} no encontrada");
-                    }
+                        return ServiceResult.ErrorResult($"Materia prima ID {detalle.MateriaPrimaId} no encontrada");
 
                     var subtotal = detalle.Cantidad * detalle.PrecioUnitario;
                     totalCompra += subtotal;
@@ -173,13 +165,24 @@ namespace SmartAgro.API.Services
                     };
 
                     _context.DetallesCompraProveedor.Add(detalleCompra);
+
+                    // ✅ Agregar movimiento de entrada
+                    var movimiento = new MovimientoStock
+                    {
+                        MateriaPrimaId = detalle.MateriaPrimaId,
+                        Tipo = "Entrada",
+                        Cantidad = detalle.Cantidad,
+                        CostoUnitario = detalle.PrecioUnitario,
+                        Referencia = numeroCompra
+                    };
+
+                    _context.MovimientosStock.Add(movimiento);
                 }
 
-                // Actualizar total de la compra
                 compra.Total = totalCompra;
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
+
                 return ServiceResult.SuccessResult($"Compra {numeroCompra} creada exitosamente");
             }
             catch (Exception ex)

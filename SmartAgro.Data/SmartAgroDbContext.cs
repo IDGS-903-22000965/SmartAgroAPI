@@ -23,6 +23,8 @@ namespace SmartAgro.Data
         public DbSet<CompraProveedor> ComprasProveedores { get; set; }
         public DbSet<DetalleCompraProveedor> DetallesCompraProveedor { get; set; }
         public DbSet<Comentario> Comentarios { get; set; }
+        public DbSet<MovimientoStock> MovimientosStock { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +47,7 @@ namespace SmartAgro.Data
             // Datos semilla
             SeedData(modelBuilder);
         }
+
 
         private void ConfigurarUsuario(ModelBuilder modelBuilder)
         {
@@ -291,6 +294,23 @@ namespace SmartAgro.Data
                       .WithMany(m => m.DetallesCompra)
                       .HasForeignKey(e => e.MateriaPrimaId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+
+        private void ConfigurarMovimientoStock(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<MovimientoStock>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Tipo).HasMaxLength(20);
+                entity.Property(e => e.CostoUnitario).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Cantidad).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Fecha).HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.MateriaPrima)
+                      .WithMany()
+                      .HasForeignKey(e => e.MateriaPrimaId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

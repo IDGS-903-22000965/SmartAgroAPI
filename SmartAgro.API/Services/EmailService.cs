@@ -155,5 +155,79 @@ Equipo SmartAgro IoT Solutions
 
             return resultado;
         }
+
+        public async Task<bool> EnviarCredencialesClienteAsync(string email, string nombreCliente, string usuario, string password)
+        {
+            var contenido = $@"
+¡Bienvenido a SmartAgro IoT Solutions, {nombreCliente}!
+
+Te damos la más cordial bienvenida a nuestra plataforma de gestión agrícola inteligente. 
+Has sido registrado exitosamente como cliente en nuestro sistema.
+
+🔐 TUS CREDENCIALES DE ACCESO:
+👤 Usuario: {usuario}
+🔑 Contraseña: {password}
+
+🌐 ACCESO AL SISTEMA:
+Puedes ingresar a tu cuenta desde nuestra plataforma web usando las credenciales proporcionadas arriba.
+
+📋 EN TU CUENTA PODRÁS:
+• Ver el historial completo de tus compras y facturas
+• Acceder a documentación técnica de tus productos
+• Descargar manuales de instalación y guías de uso
+• Actualizar tu información personal y de contacto
+• Dejar comentarios y valoraciones sobre nuestros productos
+• Solicitar soporte técnico especializado
+• Consultar el estado de tus pedidos y servicios
+
+🔒 IMPORTANTE - SEGURIDAD:
+• Te recomendamos CAMBIAR tu contraseña en el primer acceso
+• Mantén tus credenciales seguras y NO las compartas
+• Si tienes problemas de acceso, contáctanos inmediatamente
+• Tu cuenta está protegida con las mejores medidas de seguridad
+
+📞 SOPORTE AL CLIENTE 24/7:
+Si tienes alguna duda o necesitas ayuda, nuestro equipo está disponible:
+• 📧 Email de soporte: cortezdc254@gmail.com
+• 📱 WhatsApp: +52 477 123 4567
+• ⏰ Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+• 🆘 Emergencias técnicas: 24/7
+
+🎯 PRÓXIMOS PASOS:
+1. Ingresa a tu cuenta con las credenciales proporcionadas
+2. Actualiza tu información de perfil
+3. Cambia tu contraseña por una personalizada
+4. Explora la documentación de tus productos
+5. Configura tus preferencias de notificaciones
+
+🌱 ¡Gracias por confiar en SmartAgro IoT Solutions!
+Estamos comprometidos en brindarte la mejor experiencia y tecnología de vanguardia 
+para hacer crecer tu proyecto agrícola de manera sostenible e inteligente.
+
+Bienvenido a la revolución agrícola del futuro.
+
+--
+Equipo SmartAgro IoT Solutions
+📍 León de los Aldama, Guanajuato, México
+🌐 www.smartagro.com
+📧 cortezdc254@gmail.com
+
+💚 Juntos cultivamos el futuro de la agricultura
+🚀 Tecnología IoT al servicio del campo mexicano
+            ";
+
+            var resultado = await EnviarEmailAsync(email, "🔐 Bienvenido a SmartAgro - Credenciales de Acceso", contenido);
+
+            if (resultado)
+            {
+                _logger.LogInformation($"📧 Credenciales enviadas exitosamente a cliente: {email}");
+            }
+            else
+            {
+                _logger.LogError($"❌ Falló el envío de credenciales a: {email}");
+            }
+
+            return resultado;
+        }
     }
 }

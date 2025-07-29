@@ -6,13 +6,19 @@ namespace SmartAgro.API.Services
 {
     public class ProductoService : IProductoService
     {
+        private readonly ICosteoFifoService _costeoFifoService;
+
         private readonly SmartAgroDbContext _context;
 
         public ProductoService(SmartAgroDbContext context)
         {
             _context = context;
         }
-
+        public ProductoService(SmartAgroDbContext context, ICosteoFifoService costeoFifoService)
+        {
+            _context = context;
+            _costeoFifoService = costeoFifoService;
+        }
         public async Task<List<Producto>> ObtenerProductosAsync()
         {
             return await _context.Productos
@@ -63,11 +69,22 @@ namespace SmartAgro.API.Services
 
         public async Task<decimal> CalcularPrecioCostoAsync(int productoId)
         {
-            var costoMateriales = await _context.ProductoMateriasPrimas
+            var materiales = await _context.ProductoMateriasPrimas
                 .Where(pm => pm.ProductoId == productoId)
-                .SumAsync(pm => pm.CostoTotal);
+                .ToListAsync();
 
-            return costoMateriales;
+            decimal costoTotal = 0;
+
+            foreach (var material in materiales)
+            {
+                var costoMaterial = await _costeoFifoService.ObtenerCostoSalidaFifoAsync(
+                    material.MateriaPrimaId,
+                    material.CantidadRequerida);
+
+                costoTotal += costoMaterial;
+            }
+
+            return costoTotal;
         }
     }
 }

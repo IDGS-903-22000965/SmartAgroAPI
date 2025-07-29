@@ -2,6 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "SmartAgro IoT Solutions API",
+    "description": "API para el sistema de gestión SmartAgro IoT Solutions",
+    "contact": {
+      "name": "SmartAgro Team",
+      "url": "https://smartagro.com",
+      "email": "cortezdc254@gmail.com"
+    },
     "version": "v1"
   },
   "paths": {
@@ -1107,6 +1113,37 @@
         }
       }
     },
+    "/api/MateriaPrima/{id}/costeo/fifo": {
+      "get": {
+        "tags": [
+          "MateriaPrima"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cantidad",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Producto": {
       "get": {
         "tags": [
@@ -1395,6 +1432,193 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/dashboard": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/completo": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "agrupacion",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "mes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/exportar-csv": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/comparativa": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio1",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin1",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaInicio2",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin2",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/tendencias": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReporteVentas/metricas-rendimiento": {
+      "get": {
+        "tags": [
+          "ReporteVentas"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "SmartAgro.API"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringStringStringDateTimeString<>f__AnonymousType34"
+                }
+              }
+            }
           }
         }
       }
@@ -1725,30 +1949,626 @@
           }
         }
       }
+    },
+    "/api/Venta": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "metodoPago",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedVentasDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedVentasDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedVentasDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Venta"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Venta/{id}": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaDetalleDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaDetalleDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaDetalleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/{id}/estado": {
+      "put": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarEstadoVentaDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarEstadoVentaDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarEstadoVentaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Venta/mis-ventas": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaListDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaListDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaListDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/desde-cotizacion/{cotizacionId}": {
+      "post": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "cotizacionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaFromCotizacionDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaFromCotizacionDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVentaFromCotizacionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Venta/estadisticas": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VentaStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/reporte": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "agrupacion",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "mes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteVentasDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteVentasDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReporteVentasDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/productos-mas-vendidos": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoVentaDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoVentaDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductoVentaDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/clientes-frecuentes": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "top",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteVentaDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteVentaDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClienteVentaDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/por-metodo-pago": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "parameters": [
+          {
+            "name": "fechaInicio",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "fechaFin",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaPorMetodoPagoDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaPorMetodoPagoDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VentaPorMetodoPagoDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Venta/generar-numero": {
+      "get": {
+        "tags": [
+          "Venta"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ActualizarEstadoVentaDto": {
+        "required": [
+          "EstadoVenta"
+        ],
+        "type": "object",
+        "properties": {
+          "EstadoVenta": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "Observaciones": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AuthResponseDto": {
         "type": "object",
         "properties": {
-          "isSuccess": {
+          "IsSuccess": {
             "type": "boolean"
           },
-          "message": {
+          "Message": {
             "type": "string",
             "nullable": true
           },
-          "token": {
+          "Token": {
             "type": "string",
             "nullable": true
           },
-          "expiration": {
+          "Expiration": {
             "type": "string",
             "format": "date-time",
             "nullable": true
           },
-          "user": {
+          "User": {
             "$ref": "#/components/schemas/UserDto"
           }
         },
@@ -1757,67 +2577,101 @@
       "CambiarEstadoDto": {
         "type": "object",
         "properties": {
-          "nuevoEstado": {
+          "NuevoEstado": {
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "Comentario": {
-        "required": [
-          "contenido"
-        ],
+      "ClienteVentaDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "usuarioId": {
+          "UsuarioId": {
             "type": "string",
             "nullable": true
           },
-          "usuario": {
-            "$ref": "#/components/schemas/Usuario"
+          "NombreCliente": {
+            "type": "string",
+            "nullable": true
           },
-          "productoId": {
+          "EmailCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "NumeroCompras": {
             "type": "integer",
             "format": "int32"
           },
-          "producto": {
+          "MontoTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "PromedioCompra": {
+            "type": "number",
+            "format": "double"
+          },
+          "UltimaCompra": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Comentario": {
+        "required": [
+          "Contenido"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "UsuarioId": {
+            "type": "string",
+            "nullable": true
+          },
+          "Usuario": {
+            "$ref": "#/components/schemas/Usuario"
+          },
+          "ProductoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Producto": {
             "$ref": "#/components/schemas/Producto"
           },
-          "calificacion": {
+          "Calificacion": {
             "maximum": 5,
             "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
-          "contenido": {
+          "Contenido": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string"
           },
-          "fechaComentario": {
+          "FechaComentario": {
             "type": "string",
             "format": "date-time"
           },
-          "respuestaAdmin": {
+          "RespuestaAdmin": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "fechaRespuesta": {
+          "FechaRespuesta": {
             "type": "string",
             "format": "date-time",
             "nullable": true
           },
-          "aprobado": {
+          "Aprobado": {
             "type": "boolean"
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           }
         },
@@ -1825,18 +2679,18 @@
       },
       "ComentarioCreateDto": {
         "required": [
-          "calificacion",
-          "contenido"
+          "Calificacion",
+          "Contenido"
         ],
         "type": "object",
         "properties": {
-          "calificacion": {
+          "Calificacion": {
             "maximum": 5,
             "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
-          "contenido": {
+          "Contenido": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string"
@@ -1846,47 +2700,47 @@
       },
       "CompraProveedor": {
         "required": [
-          "numeroCompra"
+          "NumeroCompra"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "numeroCompra": {
+          "NumeroCompra": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string"
           },
-          "proveedorId": {
+          "ProveedorId": {
             "type": "integer",
             "format": "int32"
           },
-          "proveedor": {
+          "Proveedor": {
             "$ref": "#/components/schemas/Proveedor"
           },
-          "total": {
+          "Total": {
             "type": "number",
             "format": "double"
           },
-          "fechaCompra": {
+          "FechaCompra": {
             "type": "string",
             "format": "date-time"
           },
-          "estado": {
+          "Estado": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "observaciones": {
+          "Observaciones": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Detalles": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleCompraProveedor"
@@ -1899,43 +2753,43 @@
       "CompraProveedorDetailsDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "numeroCompra": {
+          "NumeroCompra": {
             "type": "string",
             "nullable": true
           },
-          "proveedorId": {
+          "ProveedorId": {
             "type": "integer",
             "format": "int32"
           },
-          "proveedorNombre": {
+          "ProveedorNombre": {
             "type": "string",
             "nullable": true
           },
-          "proveedorRazonSocial": {
+          "ProveedorRazonSocial": {
             "type": "string",
             "nullable": true
           },
-          "total": {
+          "Total": {
             "type": "number",
             "format": "double"
           },
-          "fechaCompra": {
+          "FechaCompra": {
             "type": "string",
             "format": "date-time"
           },
-          "estado": {
+          "Estado": {
             "type": "string",
             "nullable": true
           },
-          "observaciones": {
+          "Observaciones": {
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Detalles": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleCompraDto"
@@ -1948,35 +2802,35 @@
       "CompraProveedorListDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "numeroCompra": {
+          "NumeroCompra": {
             "type": "string",
             "nullable": true
           },
-          "proveedorNombre": {
+          "ProveedorNombre": {
             "type": "string",
             "nullable": true
           },
-          "total": {
+          "Total": {
             "type": "number",
             "format": "double"
           },
-          "fechaCompra": {
+          "FechaCompra": {
             "type": "string",
             "format": "date-time"
           },
-          "estado": {
+          "Estado": {
             "type": "string",
             "nullable": true
           },
-          "cantidadItems": {
+          "CantidadItems": {
             "type": "integer",
             "format": "int32"
           },
-          "observaciones": {
+          "Observaciones": {
             "type": "string",
             "nullable": true
           }
@@ -1986,31 +2840,31 @@
       "CompraStatsDto": {
         "type": "object",
         "properties": {
-          "totalCompras": {
+          "TotalCompras": {
             "type": "integer",
             "format": "int32"
           },
-          "comprasPendientes": {
+          "ComprasPendientes": {
             "type": "integer",
             "format": "int32"
           },
-          "comprasRecibidas": {
+          "ComprasRecibidas": {
             "type": "integer",
             "format": "int32"
           },
-          "comprasCanceladas": {
+          "ComprasCanceladas": {
             "type": "integer",
             "format": "int32"
           },
-          "comprasEsteMes": {
+          "ComprasEsteMes": {
             "type": "integer",
             "format": "int32"
           },
-          "totalGastado": {
+          "TotalGastado": {
             "type": "number",
             "format": "double"
           },
-          "gastoEsteMes": {
+          "GastoEsteMes": {
             "type": "number",
             "format": "double"
           }
@@ -2019,40 +2873,40 @@
       },
       "ContactoDto": {
         "required": [
-          "asunto",
-          "email",
-          "mensaje",
-          "nombre"
+          "Asunto",
+          "Email",
+          "Mensaje",
+          "Nombre"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "email": {
+          "Email": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "empresa": {
+          "Empresa": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "format": "tel",
             "nullable": true
           },
-          "asunto": {
+          "Asunto": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string"
           },
-          "mensaje": {
+          "Mensaje": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string"
@@ -2062,115 +2916,115 @@
       },
       "Cotizacion": {
         "required": [
-          "emailCliente",
-          "nombreCliente",
-          "numeroCotizacion"
+          "EmailCliente",
+          "NombreCliente",
+          "NumeroCotizacion"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "numeroCotizacion": {
+          "NumeroCotizacion": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string"
           },
-          "usuarioId": {
+          "UsuarioId": {
             "type": "string",
             "nullable": true
           },
-          "usuario": {
+          "Usuario": {
             "$ref": "#/components/schemas/Usuario"
           },
-          "nombreCliente": {
+          "NombreCliente": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "emailCliente": {
+          "EmailCliente": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "telefonoCliente": {
+          "TelefonoCliente": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "direccionInstalacion": {
+          "DireccionInstalacion": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "areaCultivo": {
+          "AreaCultivo": {
             "type": "number",
             "format": "double"
           },
-          "tipoCultivo": {
+          "TipoCultivo": {
             "maxLength": 50,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "tipoSuelo": {
+          "TipoSuelo": {
             "maxLength": 50,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "fuenteAguaDisponible": {
+          "FuenteAguaDisponible": {
             "type": "boolean"
           },
-          "energiaElectricaDisponible": {
+          "EnergiaElectricaDisponible": {
             "type": "boolean"
           },
-          "requierimientosEspeciales": {
+          "RequierimientosEspeciales": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "subtotal": {
+          "Subtotal": {
             "type": "number",
             "format": "double"
           },
-          "porcentajeImpuesto": {
+          "PorcentajeImpuesto": {
             "type": "number",
             "format": "double"
           },
-          "impuestos": {
+          "Impuestos": {
             "type": "number",
             "format": "double"
           },
-          "total": {
+          "Total": {
             "type": "number",
             "format": "double"
           },
-          "fechaCotizacion": {
+          "FechaCotizacion": {
             "type": "string",
             "format": "date-time"
           },
-          "fechaVencimiento": {
+          "FechaVencimiento": {
             "type": "string",
             "format": "date-time"
           },
-          "estado": {
+          "Estado": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "observaciones": {
+          "Observaciones": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Detalles": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleCotizacion"
@@ -2182,55 +3036,55 @@
       },
       "CotizacionRequestDto": {
         "required": [
-          "areaCultivo",
-          "direccionInstalacion",
-          "emailCliente",
-          "nombreCliente",
-          "tipoCultivo",
-          "tipoSuelo"
+          "AreaCultivo",
+          "DireccionInstalacion",
+          "EmailCliente",
+          "NombreCliente",
+          "TipoCultivo",
+          "TipoSuelo"
         ],
         "type": "object",
         "properties": {
-          "nombreCliente": {
+          "NombreCliente": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "emailCliente": {
+          "EmailCliente": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "telefonoCliente": {
+          "TelefonoCliente": {
             "type": "string",
             "format": "tel",
             "nullable": true
           },
-          "direccionInstalacion": {
+          "DireccionInstalacion": {
             "minLength": 1,
             "type": "string"
           },
-          "areaCultivo": {
+          "AreaCultivo": {
             "maximum": 10000,
             "minimum": 1,
             "type": "number",
             "format": "double"
           },
-          "tipoCultivo": {
+          "TipoCultivo": {
             "minLength": 1,
             "type": "string"
           },
-          "tipoSuelo": {
+          "TipoSuelo": {
             "minLength": 1,
             "type": "string"
           },
-          "fuenteAguaDisponible": {
+          "FuenteAguaDisponible": {
             "type": "boolean"
           },
-          "energiaElectricaDisponible": {
+          "EnergiaElectricaDisponible": {
             "type": "boolean"
           },
-          "requierimientosEspeciales": {
+          "RequierimientosEspeciales": {
             "type": "string",
             "nullable": true
           }
@@ -2239,27 +3093,27 @@
       },
       "CreateCompraProveedorDto": {
         "required": [
-          "detalles",
-          "fechaCompra",
-          "proveedorId"
+          "Detalles",
+          "FechaCompra",
+          "ProveedorId"
         ],
         "type": "object",
         "properties": {
-          "proveedorId": {
+          "ProveedorId": {
             "type": "integer",
             "format": "int32"
           },
-          "fechaCompra": {
+          "FechaCompra": {
             "type": "string",
             "format": "date-time"
           },
-          "observaciones": {
+          "Observaciones": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Detalles": {
             "minItems": 1,
             "type": "array",
             "items": {
@@ -2271,27 +3125,27 @@
       },
       "CreateDetalleCompraDto": {
         "required": [
-          "cantidad",
-          "materiaPrimaId",
-          "precioUnitario"
+          "Cantidad",
+          "MateriaPrimaId",
+          "PrecioUnitario"
         ],
         "type": "object",
         "properties": {
-          "materiaPrimaId": {
+          "MateriaPrimaId": {
             "type": "integer",
             "format": "int32"
           },
-          "cantidad": {
+          "Cantidad": {
             "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
-          "precioUnitario": {
+          "PrecioUnitario": {
             "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
-          "notas": {
+          "Notas": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
@@ -2300,53 +3154,163 @@
         },
         "additionalProperties": false
       },
-      "CreateUserDto": {
+      "CreateDetalleVentaDto": {
         "required": [
-          "apellidos",
-          "email",
-          "nombre",
-          "password",
-          "rol"
+          "Cantidad",
+          "PrecioUnitario",
+          "ProductoId"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "ProductoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Cantidad": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "PrecioUnitario": {
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateUserDto": {
+        "required": [
+          "Apellidos",
+          "Email",
+          "Nombre",
+          "Password",
+          "Rol"
+        ],
+        "type": "object",
+        "properties": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "apellidos": {
+          "Apellidos": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "email": {
+          "Email": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "password": {
+          "Password": {
             "maxLength": 100,
             "minLength": 6,
             "type": "string"
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "format": "tel",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "rol": {
+          "Rol": {
             "minLength": 1,
             "type": "string"
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateVentaDto": {
+        "required": [
+          "Detalles",
+          "MetodoPago",
+          "NombreCliente"
+        ],
+        "type": "object",
+        "properties": {
+          "UsuarioId": {
+            "type": "string",
+            "nullable": true
+          },
+          "NombreCliente": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "EmailCliente": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "TelefonoCliente": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "format": "tel",
+            "nullable": true
+          },
+          "DireccionEntrega": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "MetodoPago": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "Observaciones": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "Detalles": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateDetalleVentaDto"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateVentaFromCotizacionDto": {
+        "required": [
+          "MetodoPago"
+        ],
+        "type": "object",
+        "properties": {
+          "MetodoPago": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string"
+          },
+          "DireccionEntrega": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "Observaciones": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2354,31 +3318,31 @@
       "DetalleCompraDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "materiaPrimaId": {
+          "MateriaPrimaId": {
             "type": "integer",
             "format": "int32"
           },
-          "materiaPrimaNombre": {
+          "MateriaPrimaNombre": {
             "type": "string",
             "nullable": true
           },
-          "cantidad": {
+          "Cantidad": {
             "type": "number",
             "format": "double"
           },
-          "precioUnitario": {
+          "PrecioUnitario": {
             "type": "number",
             "format": "double"
           },
-          "subtotal": {
+          "Subtotal": {
             "type": "number",
             "format": "double"
           },
-          "notas": {
+          "Notas": {
             "type": "string",
             "nullable": true
           }
@@ -2388,37 +3352,37 @@
       "DetalleCompraProveedor": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "compraProveedorId": {
+          "CompraProveedorId": {
             "type": "integer",
             "format": "int32"
           },
-          "compraProveedor": {
+          "CompraProveedor": {
             "$ref": "#/components/schemas/CompraProveedor"
           },
-          "materiaPrimaId": {
+          "MateriaPrimaId": {
             "type": "integer",
             "format": "int32"
           },
-          "materiaPrima": {
+          "MateriaPrima": {
             "$ref": "#/components/schemas/MateriaPrima"
           },
-          "cantidad": {
+          "Cantidad": {
             "type": "number",
             "format": "double"
           },
-          "precioUnitario": {
+          "PrecioUnitario": {
             "type": "number",
             "format": "double"
           },
-          "subtotal": {
+          "Subtotal": {
             "type": "number",
             "format": "double"
           },
-          "notas": {
+          "Notas": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
@@ -2430,37 +3394,37 @@
       "DetalleCotizacion": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "cotizacionId": {
+          "CotizacionId": {
             "type": "integer",
             "format": "int32"
           },
-          "cotizacion": {
+          "Cotizacion": {
             "$ref": "#/components/schemas/Cotizacion"
           },
-          "productoId": {
+          "ProductoId": {
             "type": "integer",
             "format": "int32"
           },
-          "producto": {
+          "Producto": {
             "$ref": "#/components/schemas/Producto"
           },
-          "cantidad": {
+          "Cantidad": {
             "type": "integer",
             "format": "int32"
           },
-          "precioUnitario": {
+          "PrecioUnitario": {
             "type": "number",
             "format": "double"
           },
-          "subtotal": {
+          "Subtotal": {
             "type": "number",
             "format": "double"
           },
-          "descripcion": {
+          "Descripcion": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
@@ -2472,56 +3436,94 @@
       "DetalleVenta": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "ventaId": {
+          "VentaId": {
             "type": "integer",
             "format": "int32"
           },
-          "venta": {
+          "Venta": {
             "$ref": "#/components/schemas/Venta"
           },
-          "productoId": {
+          "ProductoId": {
             "type": "integer",
             "format": "int32"
           },
-          "producto": {
+          "Producto": {
             "$ref": "#/components/schemas/Producto"
           },
-          "cantidad": {
+          "Cantidad": {
             "type": "integer",
             "format": "int32"
           },
-          "precioUnitario": {
+          "PrecioUnitario": {
             "type": "number",
             "format": "double"
           },
-          "subtotal": {
+          "Subtotal": {
             "type": "number",
             "format": "double"
           }
         },
         "additionalProperties": false
       },
+      "DetalleVentaDto": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ProductoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NombreProducto": {
+            "type": "string",
+            "nullable": true
+          },
+          "DescripcionProducto": {
+            "type": "string",
+            "nullable": true
+          },
+          "Cantidad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PrecioUnitario": {
+            "type": "number",
+            "format": "double"
+          },
+          "Subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "ImagenProducto": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginDto": {
         "required": [
-          "email",
-          "password"
+          "Email",
+          "Password"
         ],
         "type": "object",
         "properties": {
-          "email": {
+          "Email": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "password": {
+          "Password": {
             "minLength": 1,
             "type": "string"
           },
-          "rememberMe": {
+          "RememberMe": {
             "type": "boolean"
           }
         },
@@ -2529,61 +3531,61 @@
       },
       "MateriaPrima": {
         "required": [
-          "nombre",
-          "unidadMedida"
+          "Nombre",
+          "UnidadMedida"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "descripcion": {
+          "Descripcion": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "unidadMedida": {
+          "UnidadMedida": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string"
           },
-          "costoUnitario": {
+          "CostoUnitario": {
             "type": "number",
             "format": "double"
           },
-          "stock": {
+          "Stock": {
             "type": "integer",
             "format": "int32"
           },
-          "stockMinimo": {
+          "StockMinimo": {
             "type": "integer",
             "format": "int32"
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           },
-          "proveedorId": {
+          "ProveedorId": {
             "type": "integer",
             "format": "int32"
           },
-          "proveedor": {
+          "Proveedor": {
             "$ref": "#/components/schemas/Proveedor"
           },
-          "productoMateriasPrimas": {
+          "ProductoMateriasPrimas": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProductoMateriaPrima"
             },
             "nullable": true
           },
-          "detallesCompra": {
+          "DetallesCompra": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleCompraProveedor"
@@ -2596,27 +3598,27 @@
       "MovimientoStockDto": {
         "type": "object",
         "properties": {
-          "materiaPrimaId": {
+          "MateriaPrimaId": {
             "type": "integer",
             "format": "int32"
           },
-          "tipo": {
+          "Tipo": {
             "type": "string",
             "nullable": true
           },
-          "cantidad": {
+          "Cantidad": {
             "type": "number",
             "format": "double"
           },
-          "costoUnitario": {
+          "CostoUnitario": {
             "type": "number",
             "format": "double"
           },
-          "referencia": {
+          "Referencia": {
             "type": "string",
             "nullable": true
           },
-          "observaciones": {
+          "Observaciones": {
             "type": "string",
             "nullable": true
           }
@@ -2626,33 +3628,33 @@
       "PaginatedComprasDto": {
         "type": "object",
         "properties": {
-          "compras": {
+          "Compras": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CompraProveedorListDto"
             },
             "nullable": true
           },
-          "totalCount": {
+          "TotalCount": {
             "type": "integer",
             "format": "int32"
           },
-          "pageNumber": {
+          "PageNumber": {
             "type": "integer",
             "format": "int32"
           },
-          "pageSize": {
+          "PageSize": {
             "type": "integer",
             "format": "int32"
           },
-          "totalPages": {
+          "TotalPages": {
             "type": "integer",
             "format": "int32"
           },
-          "hasNextPage": {
+          "HasNextPage": {
             "type": "boolean"
           },
-          "hasPreviousPage": {
+          "HasPreviousPage": {
             "type": "boolean"
           }
         },
@@ -2661,33 +3663,68 @@
       "PaginatedUsersDto": {
         "type": "object",
         "properties": {
-          "users": {
+          "Users": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserListDto"
             },
             "nullable": true
           },
-          "totalCount": {
+          "TotalCount": {
             "type": "integer",
             "format": "int32"
           },
-          "pageNumber": {
+          "PageNumber": {
             "type": "integer",
             "format": "int32"
           },
-          "pageSize": {
+          "PageSize": {
             "type": "integer",
             "format": "int32"
           },
-          "totalPages": {
+          "TotalPages": {
             "type": "integer",
             "format": "int32"
           },
-          "hasNextPage": {
+          "HasNextPage": {
             "type": "boolean"
           },
-          "hasPreviousPage": {
+          "HasPreviousPage": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaginatedVentasDto": {
+        "type": "object",
+        "properties": {
+          "Ventas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VentaListDto"
+            },
+            "nullable": true
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "HasNextPage": {
+            "type": "boolean"
+          },
+          "HasPreviousPage": {
             "type": "boolean"
           }
         },
@@ -2695,102 +3732,102 @@
       },
       "Producto": {
         "required": [
-          "nombre"
+          "Nombre"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "descripcion": {
+          "Descripcion": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "descripcionDetallada": {
+          "DescripcionDetallada": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "precioBase": {
+          "PrecioBase": {
             "type": "number",
             "format": "double"
           },
-          "porcentajeGanancia": {
+          "PorcentajeGanancia": {
             "type": "number",
             "format": "double"
           },
-          "precioVenta": {
+          "PrecioVenta": {
             "type": "number",
             "format": "double"
           },
-          "imagenPrincipal": {
+          "ImagenPrincipal": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "imagenesSecundarias": {
+          "ImagenesSecundarias": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "videoDemo": {
+          "VideoDemo": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "caracteristicas": {
+          "Caracteristicas": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "beneficios": {
+          "Beneficios": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           },
-          "fechaCreacion": {
+          "FechaCreacion": {
             "type": "string",
             "format": "date-time"
           },
-          "productoMateriasPrimas": {
+          "ProductoMateriasPrimas": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ProductoMateriaPrima"
             },
             "nullable": true
           },
-          "detallesCotizacion": {
+          "DetallesCotizacion": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleCotizacion"
             },
             "nullable": true
           },
-          "detallesVenta": {
+          "DetallesVenta": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleVenta"
             },
             "nullable": true
           },
-          "comentarios": {
+          "Comentarios": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Comentario"
@@ -2802,67 +3839,67 @@
       },
       "ProductoCreateDto": {
         "required": [
-          "nombre",
-          "porcentajeGanancia",
-          "precioBase"
+          "Nombre",
+          "PorcentajeGanancia",
+          "PrecioBase"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "descripcion": {
+          "Descripcion": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "descripcionDetallada": {
+          "DescripcionDetallada": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "precioBase": {
+          "PrecioBase": {
             "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
-          "porcentajeGanancia": {
+          "PorcentajeGanancia": {
             "maximum": 100,
             "minimum": 0,
             "type": "number",
             "format": "double"
           },
-          "imagenPrincipal": {
+          "ImagenPrincipal": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "imagenesSecundarias": {
+          "ImagenesSecundarias": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "videoDemo": {
+          "VideoDemo": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "caracteristicas": {
+          "Caracteristicas": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "beneficios": {
+          "Beneficios": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2875,37 +3912,37 @@
       "ProductoMateriaPrima": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "productoId": {
+          "ProductoId": {
             "type": "integer",
             "format": "int32"
           },
-          "producto": {
+          "Producto": {
             "$ref": "#/components/schemas/Producto"
           },
-          "materiaPrimaId": {
+          "MateriaPrimaId": {
             "type": "integer",
             "format": "int32"
           },
-          "materiaPrima": {
+          "MateriaPrima": {
             "$ref": "#/components/schemas/MateriaPrima"
           },
-          "cantidadRequerida": {
+          "CantidadRequerida": {
             "type": "number",
             "format": "double"
           },
-          "costoUnitario": {
+          "CostoUnitario": {
             "type": "number",
             "format": "double"
           },
-          "costoTotal": {
+          "CostoTotal": {
             "type": "number",
             "format": "double"
           },
-          "notas": {
+          "Notas": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
@@ -2916,145 +3953,179 @@
       },
       "ProductoUpdateDto": {
         "required": [
-          "nombre",
-          "porcentajeGanancia",
-          "precioBase"
+          "Nombre",
+          "PorcentajeGanancia",
+          "PrecioBase"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "descripcion": {
+          "Descripcion": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "descripcionDetallada": {
+          "DescripcionDetallada": {
             "maxLength": 2000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "precioBase": {
+          "PrecioBase": {
             "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
-          "porcentajeGanancia": {
+          "PorcentajeGanancia": {
             "maximum": 100,
             "minimum": 0,
             "type": "number",
             "format": "double"
           },
-          "imagenPrincipal": {
+          "ImagenPrincipal": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "imagenesSecundarias": {
+          "ImagenesSecundarias": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "videoDemo": {
+          "VideoDemo": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "caracteristicas": {
+          "Caracteristicas": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "beneficios": {
+          "Beneficios": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoVentaDto": {
+        "type": "object",
+        "properties": {
+          "ProductoId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NombreProducto": {
+            "type": "string",
+            "nullable": true
+          },
+          "CantidadVendida": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "NumeroVentas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PromedioVenta": {
+            "type": "number",
+            "format": "double"
+          },
+          "ImagenProducto": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
       },
       "Proveedor": {
         "required": [
-          "nombre",
-          "razonSocial"
+          "Nombre",
+          "RazonSocial"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "razonSocial": {
+          "RazonSocial": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "rfc": {
+          "RFC": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "telefono": {
+          "Telefono": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "Email": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "contactoPrincipal": {
+          "ContactoPrincipal": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           },
-          "fechaRegistro": {
+          "FechaRegistro": {
             "type": "string",
             "format": "date-time"
           },
-          "materiasPrimas": {
+          "MateriasPrimas": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MateriaPrima"
             },
             "nullable": true
           },
-          "compras": {
+          "Compras": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CompraProveedor"
@@ -3066,45 +4137,96 @@
       },
       "RegisterDto": {
         "required": [
-          "apellidos",
-          "confirmPassword",
-          "email",
-          "nombre",
-          "password"
+          "Apellidos",
+          "ConfirmPassword",
+          "Email",
+          "Nombre",
+          "Password"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "apellidos": {
+          "Apellidos": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "email": {
+          "Email": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "password": {
+          "Password": {
             "maxLength": 100,
             "minLength": 6,
             "type": "string"
           },
-          "confirmPassword": {
+          "ConfirmPassword": {
             "minLength": 1,
             "type": "string"
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "format": "tel",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReporteVentasDto": {
+        "type": "object",
+        "properties": {
+          "FechaInicio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "FechaFin": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "TipoAgrupacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "TotalVentas": {
+            "type": "number",
+            "format": "double"
+          },
+          "CantidadVentas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PromedioVenta": {
+            "type": "number",
+            "format": "double"
+          },
+          "VentasPorPeriodo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VentaPorPeriodoDto"
+            },
+            "nullable": true
+          },
+          "ProductosMasVendidos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoVentaDto"
+            },
+            "nullable": true
+          },
+          "ClientesFrecuentes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClienteVentaDto"
+            },
             "nullable": true
           }
         },
@@ -3112,46 +4234,72 @@
       },
       "ResetPasswordDto": {
         "required": [
-          "confirmPassword",
-          "newPassword"
+          "ConfirmPassword",
+          "NewPassword"
         ],
         "type": "object",
         "properties": {
-          "newPassword": {
+          "NewPassword": {
             "maxLength": 100,
             "minLength": 6,
             "type": "string"
           },
-          "confirmPassword": {
+          "ConfirmPassword": {
             "minLength": 1,
             "type": "string"
           }
         },
         "additionalProperties": false
       },
-      "UpdateCompraProveedorDto": {
-        "required": [
-          "detalles",
-          "fechaCompra",
-          "proveedorId"
-        ],
+      "StringStringStringDateTimeString<>f__AnonymousType34": {
         "type": "object",
         "properties": {
-          "proveedorId": {
-            "type": "integer",
-            "format": "int32"
+          "application": {
+            "type": "string",
+            "nullable": true
           },
-          "fechaCompra": {
+          "version": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamp": {
             "type": "string",
             "format": "date-time"
           },
-          "observaciones": {
+          "documentation": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateCompraProveedorDto": {
+        "required": [
+          "Detalles",
+          "FechaCompra",
+          "ProveedorId"
+        ],
+        "type": "object",
+        "properties": {
+          "ProveedorId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "FechaCompra": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Observaciones": {
             "maxLength": 1000,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Detalles": {
             "minItems": 1,
             "type": "array",
             "items": {
@@ -3163,42 +4311,42 @@
       },
       "UpdateUserDto": {
         "required": [
-          "apellidos",
-          "email",
-          "nombre"
+          "Apellidos",
+          "Email",
+          "Nombre"
         ],
         "type": "object",
         "properties": {
-          "nombre": {
+          "Nombre": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "apellidos": {
+          "Apellidos": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "email": {
+          "Email": {
             "minLength": 1,
             "type": "string",
             "format": "email"
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "format": "tel",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           },
-          "roles": {
+          "Roles": {
             "type": "array",
             "items": {
               "type": "string"
@@ -3211,31 +4359,31 @@
       "UserDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "string",
             "nullable": true
           },
-          "nombre": {
+          "Nombre": {
             "type": "string",
             "nullable": true
           },
-          "apellidos": {
+          "Apellidos": {
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "Email": {
             "type": "string",
             "nullable": true
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "type": "string",
             "nullable": true
           },
-          "roles": {
+          "Roles": {
             "type": "array",
             "items": {
               "type": "string"
@@ -3248,45 +4396,45 @@
       "UserListDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "string",
             "nullable": true
           },
-          "nombre": {
+          "Nombre": {
             "type": "string",
             "nullable": true
           },
-          "apellidos": {
+          "Apellidos": {
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "Email": {
             "type": "string",
             "nullable": true
           },
-          "telefono": {
+          "Telefono": {
             "type": "string",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "type": "string",
             "nullable": true
           },
-          "fechaRegistro": {
+          "FechaRegistro": {
             "type": "string",
             "format": "date-time"
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           },
-          "roles": {
+          "Roles": {
             "type": "array",
             "items": {
               "type": "string"
             },
             "nullable": true
           },
-          "nombreCompleto": {
+          "NombreCompleto": {
             "type": "string",
             "nullable": true,
             "readOnly": true
@@ -3297,35 +4445,35 @@
       "UserStatsDto": {
         "type": "object",
         "properties": {
-          "totalUsuarios": {
+          "TotalUsuarios": {
             "type": "integer",
             "format": "int32"
           },
-          "usuariosActivos": {
+          "UsuariosActivos": {
             "type": "integer",
             "format": "int32"
           },
-          "usuariosInactivos": {
+          "UsuariosInactivos": {
             "type": "integer",
             "format": "int32"
           },
-          "administradores": {
+          "Administradores": {
             "type": "integer",
             "format": "int32"
           },
-          "clientes": {
+          "Clientes": {
             "type": "integer",
             "format": "int32"
           },
-          "registrosEsteMes": {
+          "RegistrosEsteMes": {
             "type": "integer",
             "format": "int32"
           },
-          "registrosHoy": {
+          "RegistrosHoy": {
             "type": "integer",
             "format": "int32"
           },
-          "porcentajeActivos": {
+          "PorcentajeActivos": {
             "type": "number",
             "format": "double",
             "readOnly": true
@@ -3335,95 +4483,95 @@
       },
       "Usuario": {
         "required": [
-          "apellidos",
-          "nombre"
+          "Apellidos",
+          "Nombre"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "string",
             "nullable": true
           },
-          "userName": {
+          "UserName": {
             "type": "string",
             "nullable": true
           },
-          "normalizedUserName": {
+          "NormalizedUserName": {
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "Email": {
             "type": "string",
             "nullable": true
           },
-          "normalizedEmail": {
+          "NormalizedEmail": {
             "type": "string",
             "nullable": true
           },
-          "emailConfirmed": {
+          "EmailConfirmed": {
             "type": "boolean"
           },
-          "passwordHash": {
+          "PasswordHash": {
             "type": "string",
             "nullable": true
           },
-          "securityStamp": {
+          "SecurityStamp": {
             "type": "string",
             "nullable": true
           },
-          "concurrencyStamp": {
+          "ConcurrencyStamp": {
             "type": "string",
             "nullable": true
           },
-          "phoneNumber": {
+          "PhoneNumber": {
             "type": "string",
             "nullable": true
           },
-          "phoneNumberConfirmed": {
+          "PhoneNumberConfirmed": {
             "type": "boolean"
           },
-          "twoFactorEnabled": {
+          "TwoFactorEnabled": {
             "type": "boolean"
           },
-          "lockoutEnd": {
+          "LockoutEnd": {
             "type": "string",
             "format": "date-time",
             "nullable": true
           },
-          "lockoutEnabled": {
+          "LockoutEnabled": {
             "type": "boolean"
           },
-          "accessFailedCount": {
+          "AccessFailedCount": {
             "type": "integer",
             "format": "int32"
           },
-          "nombre": {
+          "Nombre": {
             "maxLength": 50,
             "minLength": 0,
             "type": "string"
           },
-          "apellidos": {
+          "Apellidos": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "telefono": {
+          "Telefono": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "direccion": {
+          "Direccion": {
             "maxLength": 200,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "fechaRegistro": {
+          "FechaRegistro": {
             "type": "string",
             "format": "date-time"
           },
-          "activo": {
+          "Activo": {
             "type": "boolean"
           }
         },
@@ -3431,96 +4579,341 @@
       },
       "Venta": {
         "required": [
-          "nombreCliente",
-          "numeroVenta"
+          "NombreCliente",
+          "NumeroVenta"
         ],
         "type": "object",
         "properties": {
-          "id": {
+          "Id": {
             "type": "integer",
             "format": "int32"
           },
-          "numeroVenta": {
+          "NumeroVenta": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string"
           },
-          "usuarioId": {
+          "UsuarioId": {
             "type": "string",
             "nullable": true
           },
-          "usuario": {
+          "Usuario": {
             "$ref": "#/components/schemas/Usuario"
           },
-          "cotizacionId": {
+          "CotizacionId": {
             "type": "integer",
             "format": "int32",
             "nullable": true
           },
-          "cotizacion": {
+          "Cotizacion": {
             "$ref": "#/components/schemas/Cotizacion"
           },
-          "subtotal": {
-            "type": "number",
-            "format": "double"
-          },
-          "impuestos": {
-            "type": "number",
-            "format": "double"
-          },
-          "total": {
-            "type": "number",
-            "format": "double"
-          },
-          "fechaVenta": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "estadoVenta": {
-            "maxLength": 20,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "metodoPago": {
-            "maxLength": 20,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "observaciones": {
-            "maxLength": 1000,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "nombreCliente": {
+          "NombreCliente": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string"
           },
-          "emailCliente": {
+          "EmailCliente": {
             "maxLength": 100,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "telefonoCliente": {
+          "TelefonoCliente": {
             "maxLength": 20,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "direccionEntrega": {
+          "DireccionEntrega": {
             "maxLength": 500,
             "minLength": 0,
             "type": "string",
             "nullable": true
           },
-          "detalles": {
+          "Subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "Impuestos": {
+            "type": "number",
+            "format": "double"
+          },
+          "Total": {
+            "type": "number",
+            "format": "double"
+          },
+          "FechaVenta": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "EstadoVenta": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "MetodoPago": {
+            "maxLength": 20,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "Observaciones": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "Detalles": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DetalleVenta"
+            },
+            "nullable": true
+          },
+          "Comentarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Comentario"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VentaDetalleDto": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NumeroVenta": {
+            "type": "string",
+            "nullable": true
+          },
+          "UsuarioId": {
+            "type": "string",
+            "nullable": true
+          },
+          "NombreUsuario": {
+            "type": "string",
+            "nullable": true
+          },
+          "CotizacionId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "NumeroCotizacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "NombreCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "EmailCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "TelefonoCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "DireccionEntrega": {
+            "type": "string",
+            "nullable": true
+          },
+          "Subtotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "Impuestos": {
+            "type": "number",
+            "format": "double"
+          },
+          "Total": {
+            "type": "number",
+            "format": "double"
+          },
+          "FechaVenta": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "EstadoVenta": {
+            "type": "string",
+            "nullable": true
+          },
+          "MetodoPago": {
+            "type": "string",
+            "nullable": true
+          },
+          "Observaciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "Detalles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DetalleVentaDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VentaListDto": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NumeroVenta": {
+            "type": "string",
+            "nullable": true
+          },
+          "NombreCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "EmailCliente": {
+            "type": "string",
+            "nullable": true
+          },
+          "Total": {
+            "type": "number",
+            "format": "double"
+          },
+          "FechaVenta": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "EstadoVenta": {
+            "type": "string",
+            "nullable": true
+          },
+          "MetodoPago": {
+            "type": "string",
+            "nullable": true
+          },
+          "CantidadItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NumeroCotizacion": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VentaPorMetodoPagoDto": {
+        "type": "object",
+        "properties": {
+          "MetodoPago": {
+            "type": "string",
+            "nullable": true
+          },
+          "CantidadVentas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "Porcentaje": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VentaPorPeriodoDto": {
+        "type": "object",
+        "properties": {
+          "Periodo": {
+            "type": "string",
+            "nullable": true
+          },
+          "PeriodoTexto": {
+            "type": "string",
+            "nullable": true
+          },
+          "CantidadVentas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "PromedioVenta": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "VentaStatsDto": {
+        "type": "object",
+        "properties": {
+          "TotalVentas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoTotalVentas": {
+            "type": "number",
+            "format": "double"
+          },
+          "VentasHoy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoVentasHoy": {
+            "type": "number",
+            "format": "double"
+          },
+          "VentasEsteMes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MontoVentasEsteMes": {
+            "type": "number",
+            "format": "double"
+          },
+          "VentasPendientes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "VentasCompletadas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PromedioVentaDiaria": {
+            "type": "number",
+            "format": "double"
+          },
+          "CrecimientoMesAnterior": {
+            "type": "number",
+            "format": "double"
+          },
+          "VentasPorEstado": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "VentasPorMetodoPago": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
             },
             "nullable": true
           }
@@ -3531,7 +4924,7 @@
     "securitySchemes": {
       "Bearer": {
         "type": "apiKey",
-        "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        "description": "Ingresa 'Bearer' [espacio] y luego tu token JWT.\n\nEjemplo: \"Bearer 12345abcdef\"",
         "name": "Authorization",
         "in": "header"
       }

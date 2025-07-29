@@ -18,29 +18,7 @@ namespace SmartAgro.Models.Entities
         public int? CotizacionId { get; set; }
         public virtual Cotizacion? Cotizacion { get; set; }
 
-        // ✅ PROPIEDADES FINANCIERAS
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Subtotal { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Impuestos { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Total { get; set; }
-
-        public DateTime FechaVenta { get; set; } = DateTime.Now;
-
-        // ✅ CAMBIAR Estado por EstadoVenta
-        [StringLength(20)]
-        public string EstadoVenta { get; set; } = "Pendiente"; // Pendiente, Procesando, Enviado, Entregado, Cancelado
-
-        [StringLength(20)]
-        public string? MetodoPago { get; set; }
-
-        [StringLength(1000)]
-        public string? Observaciones { get; set; }
-
-        // ✅ DATOS DEL CLIENTE (no están en las entidades originales, los agregamos)
+        // Datos del cliente
         [Required]
         [StringLength(100)]
         public string NombreCliente { get; set; } = string.Empty;
@@ -54,7 +32,29 @@ namespace SmartAgro.Models.Entities
         [StringLength(500)]
         public string? DireccionEntrega { get; set; }
 
+        // Propiedades financieras
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Subtotal { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Impuestos { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Total { get; set; }
+
+        public DateTime FechaVenta { get; set; } = DateTime.Now;
+
+        [StringLength(20)]
+        public string EstadoVenta { get; set; } = "Pendiente"; // Pendiente, Procesando, Enviado, Entregado, Cancelado
+
+        [StringLength(20)]
+        public string? MetodoPago { get; set; }
+
+        [StringLength(1000)]
+        public string? Observaciones { get; set; }
+
         // Relaciones
         public virtual ICollection<DetalleVenta> Detalles { get; set; } = new List<DetalleVenta>();
+        public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
     }
 }
