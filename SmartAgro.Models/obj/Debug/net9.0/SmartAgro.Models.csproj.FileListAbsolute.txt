@@ -10,3 +10,4 @@ C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.M
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\refint\SmartAgro.Models.dll
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.pdb
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\ref\SmartAgro.Models.dll
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.Models\obj\Debug\net9.0\SmartAgro.Models.sourcelink.json

@@ -22,6 +22,7 @@ namespace SmartAgro.Models.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal Subtotal { get; set; }
 
+        // ✅ AGREGAR DESCRIPCIÓN
         [StringLength(500)]
         public string? Descripcion { get; set; }
     }

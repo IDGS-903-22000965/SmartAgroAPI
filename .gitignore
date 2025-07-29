@@ -1,0 +1,14 @@
+# Ignorar solo SmartAgro.Web
+SmartAgro.Web/
+
+# Archivos y carpetas generadas automáticamente
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.dll
+*.exe
+*.pdb
+*.cache
+*.sourcelink.json

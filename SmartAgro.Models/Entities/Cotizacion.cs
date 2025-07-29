@@ -11,10 +11,11 @@ namespace SmartAgro.Models.Entities
         [StringLength(20)]
         public string NumeroCotizacion { get; set; } = string.Empty;
 
-        // Foreign Key
+        // Foreign Key (nullable para permitir SetNull)
         public string? UsuarioId { get; set; }
         public virtual Usuario? Usuario { get; set; }
 
+        // ✅ DATOS DEL CLIENTE
         [Required]
         [StringLength(100)]
         public string NombreCliente { get; set; } = string.Empty;
@@ -26,6 +27,7 @@ namespace SmartAgro.Models.Entities
         [StringLength(20)]
         public string? TelefonoCliente { get; set; }
 
+        // ✅ DATOS TÉCNICOS DEL PROYECTO
         [StringLength(200)]
         public string? DireccionInstalacion { get; set; }
 
@@ -33,10 +35,10 @@ namespace SmartAgro.Models.Entities
         public decimal AreaCultivo { get; set; }
 
         [StringLength(50)]
-        public string TipoCultivo { get; set; } = string.Empty;
+        public string? TipoCultivo { get; set; }
 
         [StringLength(50)]
-        public string TipoSuelo { get; set; } = string.Empty;
+        public string? TipoSuelo { get; set; }
 
         public bool FuenteAguaDisponible { get; set; }
 
@@ -45,11 +47,12 @@ namespace SmartAgro.Models.Entities
         [StringLength(1000)]
         public string? RequierimientosEspeciales { get; set; }
 
+        // ✅ DATOS FINANCIEROS
         [Column(TypeName = "decimal(18,2)")]
         public decimal Subtotal { get; set; }
 
         [Column(TypeName = "decimal(5,2)")]
-        public decimal PorcentajeImpuesto { get; set; } = 16; // IVA México
+        public decimal PorcentajeImpuesto { get; set; } = 16.00m;
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Impuestos { get; set; }
@@ -57,12 +60,13 @@ namespace SmartAgro.Models.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal Total { get; set; }
 
+        // ✅ FECHAS Y ESTADO
         public DateTime FechaCotizacion { get; set; } = DateTime.Now;
 
         public DateTime FechaVencimiento { get; set; }
 
         [StringLength(20)]
-        public string Estado { get; set; } = "Pendiente"; // Pendiente, Aprobada, Rechazada, Expirada
+        public string Estado { get; set; } = "Pendiente"; // Pendiente, Aprobada, Rechazada, Vencida
 
         [StringLength(1000)]
         public string? Observaciones { get; set; }

@@ -153,6 +153,7 @@ namespace SmartAgro.API.Controllers
         }
 
         [HttpPost("calcular-costo")]
+      //  [Authorize] 
         public async Task<IActionResult> CalcularCosto([FromBody] CotizacionRequestDto request)
         {
             try
@@ -161,8 +162,11 @@ namespace SmartAgro.API.Controllers
                 return Ok(new
                 {
                     success = true,
-                    costo = costo,
-                    costoConIva = costo * 1.16m
+                    data = new  
+                    {
+                        costo = costo,
+                        costoConIva = costo * 1.16m
+                    }
                 });
             }
             catch (Exception ex)

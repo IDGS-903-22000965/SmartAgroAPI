@@ -13,24 +13,22 @@ namespace SmartAgro.Models.Entities
         public int ProductoId { get; set; }
         public virtual Producto Producto { get; set; } = null!;
 
-        public int? VentaId { get; set; }
-        public virtual Venta? Venta { get; set; }
-
-        public int Calificacion { get; set; } // 1-5 estrellas
+        [Range(1, 5)]
+        public int Calificacion { get; set; } = 5;
 
         [Required]
-        [StringLength(1000)]
+        [StringLength(2000)]
         public string Contenido { get; set; } = string.Empty;
 
         public DateTime FechaComentario { get; set; } = DateTime.Now;
 
-        public bool Aprobado { get; set; } = false;
-
-        public bool Activo { get; set; } = true;
-
-        [StringLength(500)]
+        [StringLength(2000)]
         public string? RespuestaAdmin { get; set; }
 
         public DateTime? FechaRespuesta { get; set; }
+
+        public bool Aprobado { get; set; } = false;
+
+        public bool Activo { get; set; } = true;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartAgro.Models.DTOs;
+using SmartAgro.API.Services;
 
 namespace SmartAgro.API.Controllers
 {
@@ -7,6 +8,17 @@ namespace SmartAgro.API.Controllers
     [Route("api/[controller]")]
     public class ContactoController : ControllerBase
     {
+        private readonly IEmailService _emailService;
+        private readonly ILogger<ContactoController> _logger;
+
+        public ContactoController(
+            IEmailService emailService,
+            ILogger<ContactoController> logger)
+        {
+            _emailService = emailService;
+            _logger = logger;
+        }
+
         [HttpPost]
         public async Task<IActionResult> EnviarContacto([FromBody] ContactoDto contactoDto)
         {
@@ -15,26 +27,40 @@ namespace SmartAgro.API.Controllers
 
             try
             {
-                // Aquí iría la lógica para enviar el email
-                // Por ahora solo simulamos el envío
+                _logger.LogInformation($"🔄 Procesando mensaje de contacto de: {contactoDto.Email}");
 
-                // Log del mensaje (en producción se enviaría por email)
-                Console.WriteLine($"Nuevo mensaje de contacto:");
-                Console.WriteLine($"Nombre: {contactoDto.Nombre}");
-                Console.WriteLine($"Email: {contactoDto.Email}");
-                Console.WriteLine($"Empresa: {contactoDto.Empresa}");
-                Console.WriteLine($"Teléfono: {contactoDto.Telefono}");
-                Console.WriteLine($"Asunto: {contactoDto.Asunto}");
-                Console.WriteLine($"Mensaje: {contactoDto.Mensaje}");
+                var emailEnviado = await _emailService.EnviarEmailContactoAsync(
+                    contactoDto.Nombre,
+                    contactoDto.Email,
+                    contactoDto.Asunto,
+                    contactoDto.Mensaje
+                );
 
-                return Ok(new
+                if (emailEnviado)
                 {
-                    success = true,
-                    message = "Mensaje enviado exitosamente. Nos pondremos en contacto pronto."
-                });
+                    _logger.LogInformation($"✅ Email de contacto enviado exitosamente desde: {contactoDto.Email}");
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Mensaje enviado exitosamente. Nos pondremos en contacto pronto."
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning($"⚠️ No se pudo enviar el email de contacto desde: {contactoDto.Email}");
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Mensaje recibido. Nos pondremos en contacto pronto."
+                    });
+                }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"❌ Error al procesar mensaje de contacto de: {contactoDto.Email}");
+
                 return StatusCode(500, new
                 {
                     success = false,

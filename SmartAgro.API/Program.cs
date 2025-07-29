@@ -8,7 +8,14 @@ using SmartAgro.Models.Entities;
 using SmartAgro.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar para manejar referencias circulares
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 // Add services to the container
 builder.Services.AddControllers();
 
@@ -85,6 +92,8 @@ builder.Services.AddScoped<IMateriaPrimaService, MateriaPrimaService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<IComentarioService, ComentarioService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICompraProveedorService, CompraProveedorService>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -130,8 +139,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// *** COMENTADO PARA DESARROLLO - SOLUCIÓN 1 ***
+// Esta línea causa redirección 307 de HTTP a HTTPS
+// app.UseHttpsRedirection();
 
+// CORS debe ir ANTES de Authentication y Authorization
 app.UseCors("AllowAngularApp");
 
 app.UseAuthentication();

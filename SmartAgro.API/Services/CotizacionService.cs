@@ -8,62 +8,101 @@ namespace SmartAgro.API.Services
     public class CotizacionService : ICotizacionService
     {
         private readonly SmartAgroDbContext _context;
+        private readonly IEmailService _emailService; 
+        private readonly ILogger<CotizacionService> _logger; 
 
-        public CotizacionService(SmartAgroDbContext context)
+        public CotizacionService(
+            SmartAgroDbContext context,
+            IEmailService emailService, 
+            ILogger<CotizacionService> logger) 
         {
             _context = context;
+            _emailService = emailService;
+            _logger = logger; 
         }
 
         public async Task<Cotizacion> CrearCotizacionAsync(CotizacionRequestDto request)
         {
-            // Calcular el costo basado en el área y tipo de cultivo
-            var costoCotizacion = await CalcularCostoCotizacionAsync(request);
-            var subtotal = costoCotizacion;
-            var impuestos = subtotal * 0.16m; // IVA 16%
-            var total = subtotal + impuestos;
-
-            var cotizacion = new Cotizacion
+            try
             {
-                NumeroCotizacion = await GenerarNumeroCotizacionAsync(),
-                NombreCliente = request.NombreCliente,
-                EmailCliente = request.EmailCliente,
-                TelefonoCliente = request.TelefonoCliente,
-                DireccionInstalacion = request.DireccionInstalacion,
-                AreaCultivo = request.AreaCultivo,
-                TipoCultivo = request.TipoCultivo,
-                TipoSuelo = request.TipoSuelo,
-                FuenteAguaDisponible = request.FuenteAguaDisponible,
-                EnergiaElectricaDisponible = request.EnergiaElectricaDisponible,
-                RequierimientosEspeciales = request.RequierimientosEspeciales,
-                Subtotal = subtotal,
-                PorcentajeImpuesto = 16,
-                Impuestos = impuestos,
-                Total = total,
-                FechaVencimiento = DateTime.Now.AddDays(30),
-                Estado = "Pendiente"
-            };
+                _logger.LogInformation($"🔄 Iniciando creación de cotización para: {request.EmailCliente}");
 
-            _context.Cotizaciones.Add(cotizacion);
-            await _context.SaveChangesAsync();
+                // Calcular el costo basado en el área y tipo de cultivo
+                var costoCotizacion = await CalcularCostoCotizacionAsync(request);
+                var subtotal = costoCotizacion;
+                var impuestos = subtotal * 0.16m; // IVA 16%
+                var total = subtotal + impuestos;
 
-            // Agregar detalles de la cotización (producto principal)
-            var producto = await _context.Productos.FirstAsync(p => p.Id == 1); // Sistema principal
-            var cantidad = CalcularCantidadSistemas(request.AreaCultivo);
+                var cotizacion = new Cotizacion
+                {
+                    NumeroCotizacion = await GenerarNumeroCotizacionAsync(),
+                    NombreCliente = request.NombreCliente,
+                    EmailCliente = request.EmailCliente,
+                    TelefonoCliente = request.TelefonoCliente,
+                    DireccionInstalacion = request.DireccionInstalacion,
+                    AreaCultivo = request.AreaCultivo,
+                    TipoCultivo = request.TipoCultivo,
+                    TipoSuelo = request.TipoSuelo,
+                    FuenteAguaDisponible = request.FuenteAguaDisponible,
+                    EnergiaElectricaDisponible = request.EnergiaElectricaDisponible,
+                    RequierimientosEspeciales = request.RequierimientosEspeciales,
+                    Subtotal = subtotal,
+                    PorcentajeImpuesto = 16,
+                    Impuestos = impuestos,
+                    Total = total,
+                    FechaVencimiento = DateTime.Now.AddDays(30),
+                    Estado = "Pendiente"
+                };
 
-            var detalle = new DetalleCotizacion
+                _context.Cotizaciones.Add(cotizacion);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"✅ Cotización guardada con número: {cotizacion.NumeroCotizacion}");
+
+                // Agregar detalles de la cotización (producto principal)
+                var producto = await _context.Productos.FirstAsync(p => p.Id == 1); // Sistema principal
+                var cantidad = CalcularCantidadSistemas(request.AreaCultivo);
+
+                var detalle = new DetalleCotizacion
+                {
+                    CotizacionId = cotizacion.Id,
+                    ProductoId = producto.Id,
+                    Cantidad = cantidad,
+                    PrecioUnitario = producto.PrecioVenta,
+                    Subtotal = cantidad * producto.PrecioVenta,
+                    Descripcion = $"Sistema de Riego Automático Inteligente para {request.AreaCultivo}m² de {request.TipoCultivo}"
+                };
+
+                _context.DetallesCotizacion.Add(detalle);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"✅ Detalle de cotización guardado");
+
+                // ¡AQUÍ ES DONDE FALTABA EL ENVÍO DE EMAIL!
+                _logger.LogInformation($"📧 Enviando email de confirmación a: {cotizacion.EmailCliente}");
+
+                var emailEnviado = await _emailService.EnviarEmailCotizacionAsync(
+                    cotizacion.EmailCliente,
+                    cotizacion.NombreCliente,
+                    cotizacion.NumeroCotizacion
+                );
+
+                if (emailEnviado)
+                {
+                    _logger.LogInformation($"✅ Email enviado exitosamente a: {cotizacion.EmailCliente}");
+                }
+                else
+                {
+                    _logger.LogWarning($"⚠️ No se pudo enviar el email a: {cotizacion.EmailCliente}");
+                }
+
+                return cotizacion;
+            }
+            catch (Exception ex)
             {
-                CotizacionId = cotizacion.Id,
-                ProductoId = producto.Id,
-                Cantidad = cantidad,
-                PrecioUnitario = producto.PrecioVenta,
-                Subtotal = cantidad * producto.PrecioVenta,
-                Descripcion = $"Sistema de Riego Automático Inteligente para {request.AreaCultivo}m² de {request.TipoCultivo}"
-            };
-
-            _context.DetallesCotizacion.Add(detalle);
-            await _context.SaveChangesAsync();
-
-            return cotizacion;
+                _logger.LogError(ex, $"❌ Error al crear cotización para: {request.EmailCliente}");
+                throw;
+            }
         }
 
         public async Task<List<Cotizacion>> ObtenerCotizacionesAsync()

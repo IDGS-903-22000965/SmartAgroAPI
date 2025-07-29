@@ -174,3 +174,4 @@ C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.A
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.API\obj\Debug\net9.0\SmartAgro.API.genruntimeconfig.cache
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.API\obj\Debug\net9.0\ref\SmartAgro.API.dll
 C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+C:\Users\corte\IDGS903\Desarrollo Web Integral\SmartAgroIoTSolutions\SmartAgro.API\obj\Debug\net9.0\SmartAgro.API.sourcelink.json

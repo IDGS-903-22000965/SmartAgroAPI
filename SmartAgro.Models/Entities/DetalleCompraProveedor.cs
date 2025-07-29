@@ -14,12 +14,16 @@ namespace SmartAgro.Models.Entities
         public int MateriaPrimaId { get; set; }
         public virtual MateriaPrima MateriaPrima { get; set; } = null!;
 
-        public int Cantidad { get; set; }
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal Cantidad { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioUnitario { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Subtotal { get; set; }
+
+        [StringLength(200)]
+        public string? Notas { get; set; }
     }
 }
