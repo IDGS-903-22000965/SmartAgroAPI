@@ -1,4 +1,6 @@
-﻿using SmartAgro.Models.DTOs;
+﻿// Actualizar IVentaService.cs para incluir los nuevos métodos
+
+using SmartAgro.Models.DTOs;
 using SmartAgro.Models.DTOs.Ventas;
 using SmartAgro.Models.Entities;
 

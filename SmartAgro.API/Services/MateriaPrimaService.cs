@@ -9,6 +9,7 @@ namespace SmartAgro.API.Services
     {
         private readonly SmartAgroDbContext _context;
 
+        // ✅ CONSTRUCTOR CORREGIDO - solo inyecta lo necesario
         public MateriaPrimaService(SmartAgroDbContext context)
         {
             _context = context;
@@ -71,6 +72,24 @@ namespace SmartAgro.API.Services
                 materiaPrima.Activo = true;
                 _context.MateriasPrimas.Add(materiaPrima);
                 await _context.SaveChangesAsync();
+
+                // Si hay stock inicial, crear movimiento de entrada
+                if (materiaPrima.Stock > 0)
+                {
+                    var movimientoInicial = new MovimientoStock
+                    {
+                        MateriaPrimaId = materiaPrima.Id,
+                        Tipo = "Entrada",
+                        Cantidad = materiaPrima.Stock,
+                        CostoUnitario = materiaPrima.CostoUnitario,
+                        Referencia = "STOCK-INICIAL",
+                        Observaciones = "Stock inicial al crear la materia prima",
+                        Fecha = DateTime.Now
+                    };
+
+                    _context.MovimientosStock.Add(movimientoInicial);
+                    await _context.SaveChangesAsync();
+                }
 
                 return materiaPrima;
             }

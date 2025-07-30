@@ -9,15 +9,18 @@ namespace SmartAgro.API.Services
 {
     public class VentaService : IVentaService
     {
-        private readonly ICosteoFifoService _costeoFifoService;
-
         private readonly SmartAgroDbContext _context;
         private readonly ILogger<VentaService> _logger;
+        private readonly ICosteoFifoService _costeoFifoService;
 
-        public VentaService(SmartAgroDbContext context, ILogger<VentaService> logger)
+        public VentaService(
+           SmartAgroDbContext context,
+           ILogger<VentaService> logger,
+           ICosteoFifoService costeoFifoService)
         {
             _context = context;
             _logger = logger;
+            _costeoFifoService = costeoFifoService;
         }
 
         #region Métodos CRUD básicos
@@ -226,20 +229,57 @@ namespace SmartAgro.API.Services
                     {
                         var cantidadNecesaria = material.CantidadRequerida * detalleDto.Cantidad;
 
-                        var costoMaterial = await _costeoFifoService.ObtenerCostoSalidaFifoAsync(
-                            material.MateriaPrimaId,
-                            cantidadNecesaria);
-
-                        var movimiento = new MovimientoStock
+                        try
                         {
-                            MateriaPrimaId = material.MateriaPrimaId,
-                            Tipo = "Salida",
-                            Cantidad = cantidadNecesaria,
-                            CostoUnitario = costoMaterial / cantidadNecesaria,
-                            Referencia = numeroVenta
-                        };
+                            var costoMaterial = await _costeoFifoService.ObtenerCostoSalidaFifoAsync(
+                                material.MateriaPrimaId,
+                                cantidadNecesaria);
 
-                        _context.MovimientosStock.Add(movimiento);
+                            var movimiento = new MovimientoStock
+                            {
+                                MateriaPrimaId = material.MateriaPrimaId,
+                                Tipo = "Salida",
+                                Cantidad = cantidadNecesaria,
+                                CostoUnitario = cantidadNecesaria > 0 ? costoMaterial / cantidadNecesaria : 0,
+                                Referencia = numeroVenta,
+                                Observaciones = $"Venta {numeroVenta} - Producto {producto.Nombre}",
+                                Fecha = DateTime.Now
+                            };
+
+                            _context.MovimientosStock.Add(movimiento);
+
+                            // Actualizar stock de materia prima
+                            var materiaPrima = await _context.MateriasPrimas.FindAsync(material.MateriaPrimaId);
+                            if (materiaPrima != null)
+                            {
+                                materiaPrima.Stock = Math.Max(0, materiaPrima.Stock - (int)cantidadNecesaria);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Error en costeo FIFO para material {MaterialId}, usando costo unitario actual", material.MateriaPrimaId);
+
+                            // Fallback: usar costo unitario actual
+                            var movimiento = new MovimientoStock
+                            {
+                                MateriaPrimaId = material.MateriaPrimaId,
+                                Tipo = "Salida",
+                                Cantidad = cantidadNecesaria,
+                                CostoUnitario = material.CostoUnitario,
+                                Referencia = numeroVenta,
+                                Observaciones = $"Venta {numeroVenta} - Producto {producto.Nombre} (Fallback)",
+                                Fecha = DateTime.Now
+                            };
+
+                            _context.MovimientosStock.Add(movimiento);
+
+                            // Actualizar stock de materia prima
+                            var materiaPrima = await _context.MateriasPrimas.FindAsync(material.MateriaPrimaId);
+                            if (materiaPrima != null)
+                            {
+                                materiaPrima.Stock = Math.Max(0, materiaPrima.Stock - (int)cantidadNecesaria);
+                            }
+                        }
                     }
                 }
 
@@ -267,15 +307,16 @@ namespace SmartAgro.API.Services
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                _logger.LogInformation("Venta {NumeroVenta} creada exitosamente", numeroVenta);
                 return ServiceResult.SuccessResult($"Venta {numeroVenta} creada exitosamente", new { Id = venta.Id, NumeroVenta = numeroVenta });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error al crear venta");
                 return ServiceResult.ErrorResult($"Error al crear venta: {ex.Message}");
             }
         }
-
         public async Task<ServiceResult> CrearVentaDesdeCotizacionAsync(int cotizacionId, CreateVentaFromCotizacionDto ventaDto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();

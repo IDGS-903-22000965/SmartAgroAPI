@@ -31,7 +31,7 @@ namespace SmartAgro.API.Services
                 {
                     query = query.Where(c => c.NumeroCompra.Contains(searchTerm) ||
                                            c.Proveedor.Nombre.Contains(searchTerm) ||
-                                           c.Proveedor.RazonSocial.Contains(searchTerm));
+                                           (c.Proveedor.RazonSocial != null && c.Proveedor.RazonSocial.Contains(searchTerm)));
                 }
 
                 if (proveedorId.HasValue)
@@ -99,7 +99,7 @@ namespace SmartAgro.API.Services
                     NumeroCompra = compra.NumeroCompra,
                     ProveedorId = compra.ProveedorId,
                     ProveedorNombre = compra.Proveedor.Nombre,
-                    ProveedorRazonSocial = compra.Proveedor.RazonSocial,
+                    ProveedorRazonSocial = compra.Proveedor.RazonSocial ?? "",
                     Total = compra.Total,
                     FechaCompra = compra.FechaCompra,
                     Estado = compra.Estado,
@@ -161,22 +161,45 @@ namespace SmartAgro.API.Services
                         MateriaPrimaId = detalle.MateriaPrimaId,
                         Cantidad = detalle.Cantidad,
                         PrecioUnitario = detalle.PrecioUnitario,
-                        Subtotal = subtotal
+                        Subtotal = subtotal,
+                        Notas = detalle.Notas
                     };
 
                     _context.DetallesCompraProveedor.Add(detalleCompra);
 
-                    // ✅ Agregar movimiento de entrada
+                    // ✅ REGISTRAR MOVIMIENTO DE STOCK
                     var movimiento = new MovimientoStock
                     {
                         MateriaPrimaId = detalle.MateriaPrimaId,
                         Tipo = "Entrada",
                         Cantidad = detalle.Cantidad,
                         CostoUnitario = detalle.PrecioUnitario,
-                        Referencia = numeroCompra
+                        Referencia = numeroCompra,
+                        Observaciones = $"Compra a proveedor: {proveedor.Nombre}",
+                        Fecha = createCompraDto.FechaCompra
                     };
 
                     _context.MovimientosStock.Add(movimiento);
+
+                    // ✅ ACTUALIZAR STOCK FÍSICO DE LA MATERIA PRIMA
+                    materiaPrima.Stock += (int)detalle.Cantidad;
+
+                    // ✅ ACTUALIZAR COSTO UNITARIO CON PROMEDIO PONDERADO
+                    var stockAnterior = materiaPrima.Stock - (int)detalle.Cantidad;
+                    if (stockAnterior > 0)
+                    {
+                        // Costo promedio ponderado
+                        var valorAnterior = stockAnterior * materiaPrima.CostoUnitario;
+                        var valorNuevo = detalle.Cantidad * detalle.PrecioUnitario;
+                        materiaPrima.CostoUnitario = (valorAnterior + valorNuevo) / materiaPrima.Stock;
+                    }
+                    else
+                    {
+                        // Si no había stock anterior, usar el costo de la compra
+                        materiaPrima.CostoUnitario = detalle.PrecioUnitario;
+                    }
+                    _context.Entry(materiaPrima).State = EntityState.Modified;
+
                 }
 
                 compra.Total = totalCompra;
@@ -199,6 +222,7 @@ namespace SmartAgro.API.Services
             {
                 var compra = await _context.ComprasProveedores
                     .Include(c => c.Detalles)
+                        .ThenInclude(d => d.MateriaPrima)
                     .FirstOrDefaultAsync(c => c.Id == id);
 
                 if (compra == null)
@@ -209,6 +233,21 @@ namespace SmartAgro.API.Services
                 if (compra.Estado == "Recibido")
                 {
                     return ServiceResult.ErrorResult("No se puede modificar una compra ya recibida");
+                }
+
+                // ✅ REVERTIR MOVIMIENTOS Y STOCK ANTERIORES
+                foreach (var detalleAnterior in compra.Detalles)
+                {
+                    // Revertir stock
+                    detalleAnterior.MateriaPrima.Stock -= (int)detalleAnterior.Cantidad;
+
+                    // Eliminar movimientos de stock relacionados
+                    var movimientosAnteriores = await _context.MovimientosStock
+                        .Where(m => m.MateriaPrimaId == detalleAnterior.MateriaPrimaId &&
+                                   m.Referencia == compra.NumeroCompra)
+                        .ToListAsync();
+
+                    _context.MovimientosStock.RemoveRange(movimientosAnteriores);
                 }
 
                 // Actualizar datos básicos
@@ -224,6 +263,10 @@ namespace SmartAgro.API.Services
                 decimal totalCompra = 0;
                 foreach (var detalle in updateCompraDto.Detalles)
                 {
+                    var materiaPrima = await _context.MateriasPrimas.FindAsync(detalle.MateriaPrimaId);
+                    if (materiaPrima == null)
+                        return ServiceResult.ErrorResult($"Materia prima ID {detalle.MateriaPrimaId} no encontrada");
+
                     var subtotal = detalle.Cantidad * detalle.PrecioUnitario;
                     totalCompra += subtotal;
 
@@ -233,10 +276,28 @@ namespace SmartAgro.API.Services
                         MateriaPrimaId = detalle.MateriaPrimaId,
                         Cantidad = detalle.Cantidad,
                         PrecioUnitario = detalle.PrecioUnitario,
-                        Subtotal = subtotal
+                        Subtotal = subtotal,
+                        Notas = detalle.Notas
                     };
 
                     _context.DetallesCompraProveedor.Add(detalleCompra);
+
+                    // ✅ REGISTRAR NUEVO MOVIMIENTO DE STOCK
+                    var movimiento = new MovimientoStock
+                    {
+                        MateriaPrimaId = detalle.MateriaPrimaId,
+                        Tipo = "Entrada",
+                        Cantidad = detalle.Cantidad,
+                        CostoUnitario = detalle.PrecioUnitario,
+                        Referencia = compra.NumeroCompra,
+                        Observaciones = $"Compra actualizada - Proveedor: {compra.Proveedor.Nombre}",
+                        Fecha = updateCompraDto.FechaCompra
+                    };
+
+                    _context.MovimientosStock.Add(movimiento);
+
+                    // ✅ ACTUALIZAR STOCK FÍSICO
+                    materiaPrima.Stock += (int)detalle.Cantidad;
                 }
 
                 compra.Total = totalCompra;
@@ -254,10 +315,12 @@ namespace SmartAgro.API.Services
 
         public async Task<ServiceResult> EliminarCompraAsync(int id)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var compra = await _context.ComprasProveedores
                     .Include(c => c.Detalles)
+                        .ThenInclude(d => d.MateriaPrima)
                     .FirstOrDefaultAsync(c => c.Id == id);
 
                 if (compra == null)
@@ -270,22 +333,44 @@ namespace SmartAgro.API.Services
                     return ServiceResult.ErrorResult("No se puede eliminar una compra ya recibida");
                 }
 
+                // ✅ REVERTIR STOCK SI LA COMPRA ESTÁ PENDIENTE
+                foreach (var detalle in compra.Detalles)
+                {
+                    // Revertir stock
+                    detalle.MateriaPrima.Stock -= (int)detalle.Cantidad;
+
+                    // Eliminar movimientos de stock relacionados
+                    var movimientos = await _context.MovimientosStock
+                        .Where(m => m.MateriaPrimaId == detalle.MateriaPrimaId &&
+                                   m.Referencia == compra.NumeroCompra)
+                        .ToListAsync();
+
+                    _context.MovimientosStock.RemoveRange(movimientos);
+                }
+
                 _context.ComprasProveedores.Remove(compra);
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 return ServiceResult.SuccessResult("Compra eliminada exitosamente");
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return ServiceResult.ErrorResult($"Error al eliminar compra: {ex.Message}");
             }
         }
 
         public async Task<ServiceResult> CambiarEstadoCompraAsync(int id, string nuevoEstado)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var compra = await _context.ComprasProveedores.FindAsync(id);
+                var compra = await _context.ComprasProveedores
+                    .Include(c => c.Detalles)
+                        .ThenInclude(d => d.MateriaPrima)
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
                 if (compra == null)
                 {
                     return ServiceResult.ErrorResult("Compra no encontrada");
@@ -297,13 +382,56 @@ namespace SmartAgro.API.Services
                     return ServiceResult.ErrorResult("Estado no válido");
                 }
 
+                var estadoAnterior = compra.Estado;
                 compra.Estado = nuevoEstado;
+
+                // ✅ LÓGICA ESPECIAL PARA CAMBIOS DE ESTADO
+                if (estadoAnterior == "Pendiente" && nuevoEstado == "Cancelado")
+                {
+                    // Revertir stock al cancelar
+                    foreach (var detalle in compra.Detalles)
+                    {
+                        detalle.MateriaPrima.Stock -= (int)detalle.Cantidad;
+
+                        // Registrar movimiento de cancelación
+                        var movimientoCancelacion = new MovimientoStock
+                        {
+                            MateriaPrimaId = detalle.MateriaPrimaId,
+                            Tipo = "Salida",
+                            Cantidad = detalle.Cantidad,
+                            CostoUnitario = detalle.PrecioUnitario,
+                            Referencia = $"CANCEL-{compra.NumeroCompra}",
+                            Observaciones = "Cancelación de compra",
+                            Fecha = DateTime.Now
+                        };
+
+                        _context.MovimientosStock.Add(movimientoCancelacion);
+                    }
+                }
+                else if (estadoAnterior == "Cancelado" && nuevoEstado == "Pendiente")
+                {
+                    // Restaurar stock al reactivar
+                    foreach (var detalle in compra.Detalles)
+                    {
+                        detalle.MateriaPrima.Stock += (int)detalle.Cantidad;
+
+                        // Eliminar movimientos de cancelación
+                        var movimientosCancelacion = await _context.MovimientosStock
+                            .Where(m => m.Referencia == $"CANCEL-{compra.NumeroCompra}")
+                            .ToListAsync();
+
+                        _context.MovimientosStock.RemoveRange(movimientosCancelacion);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 return ServiceResult.SuccessResult($"Estado cambiado a {nuevoEstado}");
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 return ServiceResult.ErrorResult($"Error al cambiar estado: {ex.Message}");
             }
         }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartAgro.API.Services;
+using SmartAgro.Data;
 using SmartAgro.Models.DTOs.Ventas;
 
 namespace SmartAgro.API.Controllers
@@ -12,11 +14,16 @@ namespace SmartAgro.API.Controllers
     {
         private readonly IVentaService _ventaService;
         private readonly ILogger<ReporteVentasController> _logger;
+        private readonly SmartAgroDbContext _context;
 
-        public ReporteVentasController(IVentaService ventaService, ILogger<ReporteVentasController> logger)
+        public ReporteVentasController(
+            IVentaService ventaService,
+            ILogger<ReporteVentasController> logger,
+            SmartAgroDbContext context)
         {
             _ventaService = ventaService;
             _logger = logger;
+            _context = context;
         }
 
         /// <summary>
@@ -241,6 +248,9 @@ namespace SmartAgro.API.Controllers
                 var ventasPorDia = diasPeriodo > 0 ? (decimal)reporte.CantidadVentas / diasPeriodo : 0;
                 var montoPorDia = diasPeriodo > 0 ? reporte.TotalVentas / diasPeriodo : 0;
 
+                // Usar el nuevo método de cálculo de tasa de conversión
+                var tasaConversion = await CalcularTasaConversionAsync(fechaInicio, fechaFin);
+
                 var metricas = new
                 {
                     ventasTotales = reporte.CantidadVentas,
@@ -248,12 +258,13 @@ namespace SmartAgro.API.Controllers
                     promedioVenta = reporte.PromedioVenta,
                     ventasPorDia = Math.Round(ventasPorDia, 2),
                     montoPorDia = Math.Round(montoPorDia, 2),
-                    tasaConversion = CalcularTasaConversion(),
+                    tasaConversion = tasaConversion,
                     ventasPendientes = estadisticas.VentasPendientes,
                     ventasCompletadas = estadisticas.VentasCompletadas,
                     porcentajeCompletadas = estadisticas.TotalVentas > 0
                         ? Math.Round((decimal)estadisticas.VentasCompletadas / estadisticas.TotalVentas * 100, 2)
-                        : 0
+                        : 0,
+                    eficienciaOperativa = await CalcularEficienciaOperativaAsync(fechaInicio.Value, fechaFin.Value)
                 };
 
                 return Ok(new { success = true, data = metricas });
@@ -262,6 +273,188 @@ namespace SmartAgro.API.Controllers
             {
                 _logger.LogError(ex, "Error al obtener métricas de rendimiento");
                 return StatusCode(500, new { message = "Error al obtener métricas", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene métricas de conversión detalladas
+        /// </summary>
+        [HttpGet("metricas-conversion")]
+        public async Task<ActionResult<object>> GetMetricasConversion(
+            [FromQuery] DateTime? fechaInicio = null,
+            [FromQuery] DateTime? fechaFin = null)
+        {
+            try
+            {
+                fechaInicio ??= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                fechaFin ??= DateTime.Now;
+
+                var totalCotizaciones = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio && c.FechaCotizacion <= fechaFin)
+                    .CountAsync();
+
+                var cotizacionesAprobadas = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio &&
+                               c.FechaCotizacion <= fechaFin &&
+                               c.Estado == "Aprobada")
+                    .CountAsync();
+
+                var ventasDesdeCotizaciones = await _context.Ventas
+                    .Where(v => v.CotizacionId != null &&
+                               v.FechaVenta >= fechaInicio &&
+                               v.FechaVenta <= fechaFin)
+                    .CountAsync();
+
+                var ventasDirectas = await _context.Ventas
+                    .Where(v => v.CotizacionId == null &&
+                               v.FechaVenta >= fechaInicio &&
+                               v.FechaVenta <= fechaFin)
+                    .CountAsync();
+
+                var ventasCompletadas = await _context.Ventas
+                    .Where(v => v.FechaVenta >= fechaInicio &&
+                               v.FechaVenta <= fechaFin &&
+                               v.EstadoVenta == "Entregado")
+                    .CountAsync();
+
+                var totalVentas = ventasDesdeCotizaciones + ventasDirectas;
+
+                var metricas = new
+                {
+                    periodo = new { fechaInicio, fechaFin },
+                    embudo = new
+                    {
+                        totalCotizaciones = totalCotizaciones,
+                        cotizacionesAprobadas = cotizacionesAprobadas,
+                        ventasDesdeCotizaciones = ventasDesdeCotizaciones,
+                        ventasDirectas = ventasDirectas,
+                        totalVentas = totalVentas,
+                        ventasCompletadas = ventasCompletadas
+                    },
+                    tasasConversion = new
+                    {
+                        cotizacionesAAprobadas = totalCotizaciones > 0
+                            ? Math.Round((decimal)cotizacionesAprobadas / totalCotizaciones * 100, 2)
+                            : 0,
+                        cotizacionesAVentas = totalCotizaciones > 0
+                            ? Math.Round((decimal)ventasDesdeCotizaciones / totalCotizaciones * 100, 2)
+                            : 0,
+                        aprobadasAVentas = cotizacionesAprobadas > 0
+                            ? Math.Round((decimal)ventasDesdeCotizaciones / cotizacionesAprobadas * 100, 2)
+                            : 0,
+                        ventasACompletadas = totalVentas > 0
+                            ? Math.Round((decimal)ventasCompletadas / totalVentas * 100, 2)
+                            : 0
+                    },
+                    rendimiento = new
+                    {
+                        tiempoCicloCotizacionVenta = await CalcularTiempoCicloPromedioAsync(fechaInicio.Value, fechaFin.Value),
+                        valorPromedioVenta = await CalcularValorPromedioVentaAsync(fechaInicio.Value, fechaFin.Value),
+                        eficienciaVentas = totalCotizaciones > 0
+                            ? Math.Round((decimal)totalVentas / totalCotizaciones * 100, 2)
+                            : 0
+                    }
+                };
+
+                return Ok(new { success = true, data = metricas });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener métricas de conversión");
+                return StatusCode(500, new { message = "Error al obtener métricas", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtiene embudo de ventas detallado
+        /// </summary>
+        [HttpGet("embudo-ventas")]
+        public async Task<ActionResult<object>> GetEmbudoVentas(
+            [FromQuery] DateTime? fechaInicio = null,
+            [FromQuery] DateTime? fechaFin = null)
+        {
+            try
+            {
+                fechaInicio ??= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                fechaFin ??= DateTime.Now;
+
+                var cotizacionesSolicitadas = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio && c.FechaCotizacion <= fechaFin)
+                    .CountAsync();
+
+                var cotizacionesEnviadas = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio &&
+                               c.FechaCotizacion <= fechaFin &&
+                               (c.Estado == "Enviada" || c.Estado == "Aprobada" || c.Estado == "Vendida"))
+                    .CountAsync();
+
+                var cotizacionesAprobadas = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio &&
+                               c.FechaCotizacion <= fechaFin &&
+                               (c.Estado == "Aprobada" || c.Estado == "Vendida"))
+                    .CountAsync();
+
+                var ventasGeneradas = await _context.Ventas
+                    .Where(v => v.FechaVenta >= fechaInicio && v.FechaVenta <= fechaFin)
+                    .CountAsync();
+
+                var ventasCompletadas = await _context.Ventas
+                    .Where(v => v.FechaVenta >= fechaInicio &&
+                               v.FechaVenta <= fechaFin &&
+                               v.EstadoVenta == "Entregado")
+                    .CountAsync();
+
+                var embudo = new
+                {
+                    etapas = new[]
+                    {
+                        new {
+                            nombre = "Cotizaciones Solicitadas",
+                            cantidad = cotizacionesSolicitadas,
+                            porcentaje = 100m,
+                            color = "#e3f2fd"
+                        },
+                        new {
+                            nombre = "Cotizaciones Enviadas",
+                            cantidad = cotizacionesEnviadas,
+                            porcentaje = cotizacionesSolicitadas > 0 ? Math.Round((decimal)cotizacionesEnviadas / cotizacionesSolicitadas * 100, 1) : 0,
+                            color = "#bbdefb"
+                        },
+                        new {
+                            nombre = "Cotizaciones Aprobadas",
+                            cantidad = cotizacionesAprobadas,
+                            porcentaje = cotizacionesSolicitadas > 0 ? Math.Round((decimal)cotizacionesAprobadas / cotizacionesSolicitadas * 100, 1) : 0,
+                            color = "#90caf9"
+                        },
+                        new {
+                            nombre = "Ventas Generadas",
+                            cantidad = ventasGeneradas,
+                            porcentaje = cotizacionesSolicitadas > 0 ? Math.Round((decimal)ventasGeneradas / cotizacionesSolicitadas * 100, 1) : 0,
+                            color = "#64b5f6"
+                        },
+                        new {
+                            nombre = "Ventas Completadas",
+                            cantidad = ventasCompletadas,
+                            porcentaje = cotizacionesSolicitadas > 0 ? Math.Round((decimal)ventasCompletadas / cotizacionesSolicitadas * 100, 1) : 0,
+                            color = "#2196f3"
+                        }
+                    },
+                    resumen = new
+                    {
+                        tasaConversionTotal = cotizacionesSolicitadas > 0 ? Math.Round((decimal)ventasCompletadas / cotizacionesSolicitadas * 100, 2) : 0,
+                        eficienciaEnvio = cotizacionesSolicitadas > 0 ? Math.Round((decimal)cotizacionesEnviadas / cotizacionesSolicitadas * 100, 2) : 0,
+                        tasaAprobacion = cotizacionesEnviadas > 0 ? Math.Round((decimal)cotizacionesAprobadas / cotizacionesEnviadas * 100, 2) : 0,
+                        tasaCierre = cotizacionesAprobadas > 0 ? Math.Round((decimal)ventasGeneradas / cotizacionesAprobadas * 100, 2) : 0,
+                        tasaCompletacion = ventasGeneradas > 0 ? Math.Round((decimal)ventasCompletadas / ventasGeneradas * 100, 2) : 0
+                    }
+                };
+
+                return Ok(new { success = true, data = embudo });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener embudo de ventas");
+                return StatusCode(500, new { message = "Error al obtener embudo", error = ex.Message });
             }
         }
 
@@ -290,12 +483,79 @@ namespace SmartAgro.API.Controllers
             return csv.ToString();
         }
 
-        private decimal CalcularTasaConversion()
+        private async Task<decimal> CalcularTasaConversionAsync(DateTime? fechaInicio = null, DateTime? fechaFin = null)
         {
-            // Aquí podrías implementar el cálculo de tasa de conversión
-            // basado en cotizaciones vs ventas, o visitantes vs ventas, etc.
-            // Por ahora retornamos un valor de ejemplo
-            return 15.75m;
+            try
+            {
+                // Si no se especifican fechas, usar el mes actual
+                fechaInicio ??= new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                fechaFin ??= DateTime.Now;
+
+                // Obtener cotizaciones en el período
+                var totalCotizaciones = await _context.Cotizaciones
+                    .Where(c => c.FechaCotizacion >= fechaInicio && c.FechaCotizacion <= fechaFin)
+                    .CountAsync();
+
+                // Obtener ventas creadas desde cotizaciones en el período
+                var ventasDesdeCotizaciones = await _context.Ventas
+                    .Where(v => v.CotizacionId != null &&
+                               v.FechaVenta >= fechaInicio &&
+                               v.FechaVenta <= fechaFin)
+                    .CountAsync();
+
+                // Calcular tasa de conversión de cotizaciones a ventas
+                if (totalCotizaciones == 0)
+                    return 0;
+
+                return Math.Round((decimal)ventasDesdeCotizaciones / totalCotizaciones * 100, 2);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al calcular tasa de conversión");
+                return 0;
+            }
+        }
+
+        private async Task<decimal> CalcularEficienciaOperativaAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var ventasEntregadas = await _context.Ventas
+                .Where(v => v.FechaVenta >= fechaInicio &&
+                           v.FechaVenta <= fechaFin &&
+                           v.EstadoVenta == "Entregado")
+                .CountAsync();
+
+            var totalVentas = await _context.Ventas
+                .Where(v => v.FechaVenta >= fechaInicio && v.FechaVenta <= fechaFin)
+                .CountAsync();
+
+            return totalVentas > 0 ? Math.Round((decimal)ventasEntregadas / totalVentas * 100, 2) : 0;
+        }
+
+        private async Task<decimal> CalcularTiempoCicloPromedioAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            var ventasConCotizacion = await _context.Ventas
+                .Where(v => v.CotizacionId != null &&
+                           v.FechaVenta >= fechaInicio &&
+                           v.FechaVenta <= fechaFin)
+                .Include(v => v.Cotizacion)
+                .ToListAsync();
+
+            if (!ventasConCotizacion.Any())
+                return 0;
+
+            var tiemposCiclo = ventasConCotizacion
+                .Where(v => v.Cotizacion != null)
+                .Select(v => (v.FechaVenta - v.Cotizacion!.FechaCotizacion).TotalDays)
+                .ToList();
+
+            return Math.Round((decimal)tiemposCiclo.Average(), 1);
+        }
+
+        private async Task<decimal> CalcularValorPromedioVentaAsync(DateTime fechaInicio, DateTime fechaFin)
+        {
+            return await _context.Ventas
+                .Where(v => v.FechaVenta >= fechaInicio && v.FechaVenta <= fechaFin)
+                .AverageAsync(v => (decimal?)v.Total) ?? 0;
         }
 
         #endregion

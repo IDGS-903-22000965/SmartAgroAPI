@@ -1,7 +1,9 @@
-﻿// SmartAgro.API/Controllers/MateriaPrimaController.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartAgro.API.Services;
+using SmartAgro.Data;
+using SmartAgro.Models.DTOs;
 using SmartAgro.Models.Entities;
 
 namespace SmartAgro.API.Controllers
@@ -11,13 +13,18 @@ namespace SmartAgro.API.Controllers
     [Authorize(Roles = "Admin")]
     public class MateriaPrimaController : ControllerBase
     {
+        private readonly SmartAgroDbContext _context;
+        private readonly IMateriaPrimaService _materiaPrimaService;
         private readonly ICosteoFifoService _costeoFifoService;
 
-        private readonly IMateriaPrimaService _materiaPrimaService;
-
-        public MateriaPrimaController(IMateriaPrimaService materiaPrimaService)
+        public MateriaPrimaController(
+            SmartAgroDbContext context,
+            IMateriaPrimaService materiaPrimaService,
+            ICosteoFifoService costeoFifoService)
         {
+            _context = context;
             _materiaPrimaService = materiaPrimaService;
+            _costeoFifoService = costeoFifoService;
         }
 
         [HttpGet]
@@ -60,319 +67,36 @@ namespace SmartAgro.API.Controllers
                 });
             }
         }
-        // Agregar estos métodos al MateriaPrimaController existente
-
-[HttpGet("{id}/movimientos")]
-public async Task<IActionResult> ObtenerMovimientosStock(int id)
-{
-    try
-    {
-        // Aquí implementarías la lógica para obtener movimientos de stock
-        // Por ahora retorno datos de ejemplo
-        var movimientos = new[]
-        {
-            new
-            {
-                Id = 1,
-                Tipo = "Entrada",
-                Cantidad = 100,
-                CostoUnitario = 45.50m,
-                Fecha = DateTime.Now.AddDays(-30),
-                Referencia = "CP-202401-001",
-                Observaciones = "Compra inicial"
-            },
-            new
-            {
-                Id = 2,
-                Tipo = "Salida",
-                Cantidad = 25,
-                CostoUnitario = 45.50m,
-                Fecha = DateTime.Now.AddDays(-15),
-                Referencia = "PROD-001",
-                Observaciones = "Uso en producción"
-            }
-        };
-
-        return Ok(new { success = true, data = movimientos });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al obtener movimientos de stock",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpPost("movimientos")]
-public async Task<IActionResult> RegistrarMovimientoStock([FromBody] MovimientoStockDto movimiento)
-{
-    try
-    {
-        // Aquí implementarías la lógica para registrar un movimiento de stock
-        // Esto incluiría:
-        // 1. Validar que la materia prima existe
-        // 2. Calcular el nuevo stock según el tipo de movimiento
-        // 3. Actualizar el costo promedio si es necesario
-        // 4. Registrar el movimiento en el historial
-
-        var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(movimiento.MateriaPrimaId);
-        if (materiaPrima == null)
-            return NotFound(new { success = false, message = "Materia prima no encontrada" });
-
-        // Simular actualización de stock
-        var nuevoStock = movimiento.Tipo switch
-        {
-            "Entrada" => materiaPrima.Stock + movimiento.Cantidad,
-            "Salida" => Math.Max(0, materiaPrima.Stock - movimiento.Cantidad),
-            "Ajuste" => movimiento.Cantidad,
-            _ => materiaPrima.Stock
-        };
-
-        // Aquí actualizarías el stock y registrarías el movimiento
-        await _materiaPrimaService.ActualizarStockAsync(movimiento.MateriaPrimaId, (int)nuevoStock);
-
-        return Ok(new
-        {
-            success = true,
-            message = "Movimiento de stock registrado exitosamente",
-            nuevoStock = nuevoStock
-        });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al registrar movimiento de stock",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpGet("{id}/costeo/promedio")]
-public async Task<IActionResult> CalcularCosteoPromedio(int id)
-{
-    try
-    {
-        var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(id);
-        if (materiaPrima == null)
-            return NotFound(new { success = false, message = "Materia prima no encontrada" });
-
-        // Implementar cálculo de costo promedio ponderado
-        // Este es un ejemplo simplificado
-        var costoPromedio = new
-        {
-            CostoActual = materiaPrima.CostoUnitario,
-            CostoPromedio = materiaPrima.CostoUnitario, // Aquí implementarías el cálculo real
-            FechaCalculo = DateTime.Now,
-            MetodoCalculo = "Promedio Ponderado"
-        };
-
-        return Ok(new { success = true, data = costoPromedio });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al calcular costeo promedio",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpGet("{id}/costeo/ultimo")]
-public async Task<IActionResult> CalcularCosteoUltimo(int id)
-{
-    try
-    {
-        var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(id);
-        if (materiaPrima == null)
-            return NotFound(new { success = false, message = "Materia prima no encontrada" });
-
-        // Implementar cálculo de último costo (LIFO)
-        var costoUltimo = new
-        {
-            CostoActual = materiaPrima.CostoUnitario,
-            UltimoCosto = materiaPrima.CostoUnitario, // Aquí implementarías el cálculo real
-            FechaUltimaEntrada = DateTime.Now.AddDays(-5),
-            MetodoCalculo = "Último Costo (LIFO)"
-        };
-
-        return Ok(new { success = true, data = costoUltimo });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al calcular último costo",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpGet("reporte-costeo")]
-public async Task<IActionResult> ObtenerReporteCosteo(
-    [FromQuery] int? materiaPrimaId = null,
-    [FromQuery] DateTime? fechaInicio = null,
-    [FromQuery] DateTime? fechaFin = null)
-{
-    try
-    {
-                var materiasPrimas = materiaPrimaId.HasValue
-            ? new List<MateriaPrima> { await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(materiaPrimaId.Value) }
-            : await _materiaPrimaService.ObtenerMateriasPrimasAsync();
-
-
-                var reporte = materiasPrimas.Where(m => m != null && m.Activo).Select(m => new
-        {
-            Id = m.Id,
-            Nombre = m.Nombre,
-            Stock = m.Stock,
-            CostoUnitarioActual = m.CostoUnitario,
-            ValorInventario = m.Stock * m.CostoUnitario,
-            CostoPromedio = m.CostoUnitario, // Implementar cálculo real
-            UltimoCosto = m.CostoUnitario,   // Implementar cálculo real
-            UnidadMedida = m.UnidadMedida,
-            Proveedor = m.Proveedor?.Nombre,
-            FechaCalculo = DateTime.Now
-        }).ToList();
-
-        var resumen = new
-        {
-            TotalMateriasPrimas = reporte.Count,
-            ValorTotalInventario = reporte.Sum(r => r.ValorInventario),
-            FechaReporte = DateTime.Now,
-            Detalles = reporte
-        };
-
-        return Ok(new { success = true, data = resumen });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al generar reporte de costeo",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpGet("valor-inventario")]
-public async Task<IActionResult> ObtenerValorInventario()
-{
-    try
-    {
-        var materiasPrimas = await _materiaPrimaService.ObtenerMateriasPrimasAsync();
-        
-        var valorTotal = materiasPrimas
-            .Where(m => m.Activo)
-            .Sum(m => m.Stock * m.CostoUnitario);
-
-        var estadisticas = new
-        {
-            ValorTotalInventario = valorTotal,
-            TotalMateriasPrimas = materiasPrimas.Count(m => m.Activo),
-            MateriasBajoStock = materiasPrimas.Count(m => m.Activo && m.Stock <= m.StockMinimo),
-            MateriasSinStock = materiasPrimas.Count(m => m.Activo && m.Stock == 0),
-            FechaCalculo = DateTime.Now
-        };
-
-        return Ok(new { success = true, data = estadisticas });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error al calcular valor de inventario",
-            error = ex.Message
-        });
-    }
-}
-
-[HttpGet("buscar")]
-public async Task<IActionResult> BuscarMateriasPrimas(
-    [FromQuery] string? busqueda = null,
-    [FromQuery] int? proveedorId = null,
-    [FromQuery] bool? activo = null,
-    [FromQuery] bool bajoStock = false,
-    [FromQuery] bool sinStock = false)
-{
-    try
-    {
-        var materiasPrimas = await _materiaPrimaService.ObtenerMateriasPrimasAsync();
-        var query = materiasPrimas.AsQueryable();
-
-        // Aplicar filtros
-        if (!string.IsNullOrEmpty(busqueda))
-        {
-            var termino = busqueda.ToLower();
-            query = query.Where(m => 
-                m.Nombre.ToLower().Contains(termino) ||
-                (m.Descripcion != null && m.Descripcion.ToLower().Contains(termino)));
-        }
-
-        if (proveedorId.HasValue)
-        {
-            query = query.Where(m => m.ProveedorId == proveedorId.Value);
-        }
-
-        if (activo.HasValue)
-        {
-            query = query.Where(m => m.Activo == activo.Value);
-        }
-
-        if (bajoStock)
-        {
-            query = query.Where(m => m.Stock <= m.StockMinimo);
-        }
-
-        if (sinStock)
-        {
-            query = query.Where(m => m.Stock == 0);
-        }
-
-        var resultado = query.ToList();
-
-        return Ok(new { success = true, data = resultado });
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, new
-        {
-            success = false,
-            message = "Error en la búsqueda",
-            error = ex.Message
-        });
-    }
-}
-
-// DTO para movimientos de stock
-public class MovimientoStockDto
-{
-    public int MateriaPrimaId { get; set; }
-    public string Tipo { get; set; } = string.Empty; // Entrada, Salida, Ajuste
-    public decimal Cantidad { get; set; }
-    public decimal CostoUnitario { get; set; }
-    public string? Referencia { get; set; }
-    public string? Observaciones { get; set; }
-}
 
         [HttpPost]
-        public async Task<IActionResult> CrearMateriaPrima([FromBody] MateriaPrima materiaPrima)
+        public async Task<IActionResult> CrearMateriaPrima([FromBody] MateriaPrimaCreateDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Datos inválidos",
+                    errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                });
+            }
 
             try
             {
+                var materiaPrima = new MateriaPrima
+                {
+                    Nombre = dto.Nombre,
+                    Descripcion = dto.Descripcion,
+                    UnidadMedida = dto.UnidadMedida,
+                    CostoUnitario = dto.CostoUnitario,
+                    Stock = dto.Stock,
+                    StockMinimo = dto.StockMinimo,
+                    ProveedorId = dto.ProveedorId,
+                    Activo = true
+                };
+
                 var nuevaMateriaPrima = await _materiaPrimaService.CrearMateriaPrimaAsync(materiaPrima);
+
                 return Ok(new
                 {
                     success = true,
@@ -392,14 +116,26 @@ public class MovimientoStockDto
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarMateriaPrima(int id, [FromBody] MateriaPrima materiaPrima)
+        public async Task<IActionResult> ActualizarMateriaPrima(int id, [FromBody] MateriaPrimaUpdateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                materiaPrima.Id = id;
+                var materiaPrima = new MateriaPrima
+                {
+                    Id = id,
+                    Nombre = dto.Nombre,
+                    Descripcion = dto.Descripcion,
+                    UnidadMedida = dto.UnidadMedida,
+                    CostoUnitario = dto.CostoUnitario,
+                    Stock = dto.Stock,
+                    StockMinimo = dto.StockMinimo,
+                    ProveedorId = dto.ProveedorId,
+                    Activo = dto.Activo
+                };
+
                 var resultado = await _materiaPrimaService.ActualizarMateriaPrimaAsync(materiaPrima);
                 if (!resultado)
                     return NotFound(new { success = false, message = "Materia prima no encontrada" });
@@ -442,6 +178,129 @@ public class MovimientoStockDto
                 {
                     success = false,
                     message = "Error al eliminar la materia prima",
+                    error = ex.Message
+                });
+            }
+        }
+
+        // ✅ MÉTODO CORREGIDO PARA OBTENER MOVIMIENTOS REALES
+        [HttpGet("{id}/movimientos")]
+        public async Task<IActionResult> ObtenerMovimientosStock(int id)
+        {
+            try
+            {
+                // Verificar que la materia prima existe
+                var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(id);
+                if (materiaPrima == null)
+                    return NotFound(new { success = false, message = "Materia prima no encontrada" });
+
+                // Obtener movimientos reales de la base de datos
+                var movimientos = await _context.MovimientosStock
+                    .Where(m => m.MateriaPrimaId == id)
+                    .Include(m => m.MateriaPrima)
+                    .OrderByDescending(m => m.Fecha)
+                    .Select(m => new MovimientoStockResponseDto
+                    {
+                        Id = m.Id,
+                        MateriaPrimaId = m.MateriaPrimaId,
+                        MateriaPrimaNombre = m.MateriaPrima.Nombre,
+                        Tipo = m.Tipo,
+                        Cantidad = m.Cantidad,
+                        CostoUnitario = m.CostoUnitario,
+                        Fecha = m.Fecha,
+                        Referencia = m.Referencia,
+                        Observaciones = m.Observaciones
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, data = movimientos });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error al obtener movimientos de stock",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("movimientos")]
+        public async Task<IActionResult> RegistrarMovimientoStock([FromBody] MovimientoStockDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(dto.MateriaPrimaId);
+                if (materiaPrima == null)
+                    return NotFound(new { success = false, message = "Materia prima no encontrada" });
+
+                // Calcular nuevo stock según el tipo de movimiento
+                var nuevoStock = dto.Tipo switch
+                {
+                    "Entrada" => materiaPrima.Stock + (int)dto.Cantidad,
+                    "Salida" => Math.Max(0, materiaPrima.Stock - (int)dto.Cantidad),
+                    "Ajuste" => (int)dto.Cantidad,
+                    _ => materiaPrima.Stock
+                };
+
+                // Validar que no se genere stock negativo en salidas
+                if (dto.Tipo == "Salida" && materiaPrima.Stock < (int)dto.Cantidad)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"No hay suficiente stock disponible. Stock actual: {materiaPrima.Stock}"
+                    });
+                }
+
+                // Registrar el movimiento en la tabla MovimientosStock
+                var movimiento = new MovimientoStock
+                {
+                    MateriaPrimaId = dto.MateriaPrimaId,
+                    Tipo = dto.Tipo,
+                    Cantidad = dto.Cantidad,
+                    CostoUnitario = dto.CostoUnitario,
+                    Referencia = dto.Referencia,
+                    Observaciones = dto.Observaciones,
+                    Fecha = DateTime.Now
+                };
+
+                _context.MovimientosStock.Add(movimiento);
+
+                // Actualizar stock de la materia prima
+                await _materiaPrimaService.ActualizarStockAsync(dto.MateriaPrimaId, nuevoStock);
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Movimiento de stock registrado exitosamente",
+                    nuevoStock = nuevoStock,
+                    movimiento = new MovimientoStockResponseDto
+                    {
+                        Id = movimiento.Id,
+                        MateriaPrimaId = movimiento.MateriaPrimaId,
+                        MateriaPrimaNombre = materiaPrima.Nombre,
+                        Tipo = movimiento.Tipo,
+                        Cantidad = movimiento.Cantidad,
+                        CostoUnitario = movimiento.CostoUnitario,
+                        Fecha = movimiento.Fecha,
+                        Referencia = movimiento.Referencia,
+                        Observaciones = movimiento.Observaciones
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error al registrar movimiento de stock",
                     error = ex.Message
                 });
             }
@@ -510,6 +369,7 @@ public class MovimientoStockDto
                 });
             }
         }
+
         [HttpGet("{id}/costeo/fifo")]
         public async Task<IActionResult> CalcularCostoFifo(int id, [FromQuery] decimal cantidad)
         {
@@ -521,6 +381,47 @@ public class MovimientoStockDto
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/costeo/promedio")]
+        public async Task<IActionResult> CalcularCosteoPromedio(int id)
+        {
+            try
+            {
+                var materiaPrima = await _materiaPrimaService.ObtenerMateriaPrimaPorIdAsync(id);
+                if (materiaPrima == null)
+                    return NotFound(new { success = false, message = "Materia prima no encontrada" });
+
+                // Calcular costo promedio ponderado real
+                var entradas = await _context.MovimientosStock
+                    .Where(m => m.MateriaPrimaId == id && m.Tipo == "Entrada")
+                    .ToListAsync();
+
+                var costoPromedio = entradas.Any()
+                    ? entradas.Sum(e => e.Cantidad * e.CostoUnitario) / entradas.Sum(e => e.Cantidad)
+                    : materiaPrima.CostoUnitario;
+
+                var resultado = new
+                {
+                    CostoActual = materiaPrima.CostoUnitario,
+                    CostoPromedio = costoPromedio,
+                    FechaCalculo = DateTime.Now,
+                    MetodoCalculo = "Promedio Ponderado",
+                    TotalEntradas = entradas.Count,
+                    CantidadTotal = entradas.Sum(e => e.Cantidad)
+                };
+
+                return Ok(new { success = true, data = resultado });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error al calcular costeo promedio",
+                    error = ex.Message
+                });
             }
         }
     }

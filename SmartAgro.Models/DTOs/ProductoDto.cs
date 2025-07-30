@@ -8,6 +8,10 @@ namespace SmartAgro.Models.DTOs
         public string Nombre { get; set; } = string.Empty;
         public string? Descripcion { get; set; }
         public string? DescripcionDetallada { get; set; }
+
+        public decimal PrecioBase { get; set; }
+        public decimal PorcentajeGanancia { get; set; }
+
         public decimal PrecioVenta { get; set; }
         public string? ImagenPrincipal { get; set; }
         public List<string>? ImagenesSecundarias { get; set; }
@@ -39,7 +43,6 @@ namespace SmartAgro.Models.DTOs
         [Range(0, 100, ErrorMessage = "El porcentaje debe estar entre 0 y 100")]
         public decimal PorcentajeGanancia { get; set; }
 
-        [StringLength(500)]
         public string? ImagenPrincipal { get; set; }
 
         public List<string>? ImagenesSecundarias { get; set; }
@@ -48,7 +51,6 @@ namespace SmartAgro.Models.DTOs
         public string? VideoDemo { get; set; }
 
         public List<string>? Caracteristicas { get; set; }
-
         public List<string>? Beneficios { get; set; }
     }
 
