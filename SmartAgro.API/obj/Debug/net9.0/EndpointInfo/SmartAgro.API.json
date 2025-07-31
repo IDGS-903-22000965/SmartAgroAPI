@@ -5,6 +5,37 @@
     "version": "v1"
   },
   "paths": {
+    "/api/account-request": {
+      "post": {
+        "tags": [
+          "AccountRequest"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Auth/login": {
       "post": {
         "tags": [
@@ -25,54 +56,6 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Auth/register": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterDto"
               }
             }
           }
@@ -145,6 +128,18 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/Auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -2669,6 +2664,54 @@
   },
   "components": {
     "schemas": {
+      "AccountRequestDto": {
+        "required": [
+          "apellidos",
+          "email",
+          "mensaje",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "apellidos": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "telefono": {
+            "pattern": "^\\d{10}$",
+            "type": "string",
+            "format": "tel",
+            "nullable": true
+          },
+          "empresa": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "mensaje": {
+            "maxLength": 500,
+            "minLength": 10,
+            "type": "string"
+          },
+          "fechaSolicitud": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "ActualizarEstadoVentaDto": {
         "required": [
           "estadoVenta"
@@ -4417,52 +4460,6 @@
             "items": {
               "$ref": "#/components/schemas/CompraProveedor"
             },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RegisterDto": {
-        "required": [
-          "apellidos",
-          "confirmPassword",
-          "email",
-          "nombre",
-          "password"
-        ],
-        "type": "object",
-        "properties": {
-          "nombre": {
-            "maxLength": 100,
-            "minLength": 0,
-            "type": "string"
-          },
-          "apellidos": {
-            "maxLength": 100,
-            "minLength": 0,
-            "type": "string"
-          },
-          "email": {
-            "minLength": 1,
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "maxLength": 100,
-            "minLength": 6,
-            "type": "string"
-          },
-          "confirmPassword": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "telefono": {
-            "type": "string",
-            "format": "tel",
-            "nullable": true
-          },
-          "direccion": {
-            "type": "string",
             "nullable": true
           }
         },

@@ -1,5 +1,21 @@
 [
   {
+    "ContainingType": "SmartAgro.API.Controllers.AccountRequestController",
+    "Method": "SubmitAccountRequest",
+    "RelativePath": "api/account-request",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "SmartAgro.Models.DTOs.AccountRequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "SmartAgro.API.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
@@ -27,6 +43,16 @@
   },
   {
     "ContainingType": "SmartAgro.API.Controllers.AuthController",
+    "Method": "Logout",
+    "RelativePath": "api/Auth/logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.AuthController",
     "Method": "RefreshToken",
     "RelativePath": "api/Auth/refresh-token",
     "HttpMethod": "POST",
@@ -36,32 +62,6 @@
       {
         "Name": "token",
         "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "SmartAgro.Models.DTOs.Auth.AuthResponseDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "SmartAgro.API.Controllers.AuthController",
-    "Method": "Register",
-    "RelativePath": "api/Auth/register",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "registerDto",
-        "Type": "SmartAgro.Models.DTOs.Auth.RegisterDto",
         "IsRequired": true
       }
     ],

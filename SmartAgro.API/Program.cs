@@ -78,6 +78,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // ? REGISTRAR TODOS LOS SERVICIOS
+// ?? AuthService actualizado SIN registro público
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICotizacionService, CotizacionService>();
@@ -183,7 +184,7 @@ using (var scope = app.Services.CreateScope())
         }
 
         // Crear usuario administrador por defecto
-        var adminEmail = "admin@smartagro.com";
+        var adminEmail = "cortezgonzalezjuandiego3@gmail.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
@@ -195,10 +196,11 @@ using (var scope = app.Services.CreateScope())
                 Nombre = "Administrador",
                 Apellidos = "Sistema",
                 EmailConfirmed = true,
-                Activo = true
+                Activo = true,
+                FechaRegistro = DateTime.Now // ? Agregado para consistencia
             };
 
-            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            var result = await userManager.CreateAsync(adminUser, "Admin123@");
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
@@ -233,6 +235,13 @@ using (var scope = app.Services.CreateScope())
         }
 
         Console.WriteLine("?? Inicialización de datos completada");
+        Console.WriteLine("?? ENDPOINTS DISPONIBLES:");
+        Console.WriteLine("   ?? POST /api/auth/login - Iniciar sesión");
+        Console.WriteLine("   ?? POST /api/auth/refresh-token - Refrescar token");
+        Console.WriteLine("   ?? POST /api/auth/logout - Cerrar sesión");
+        Console.WriteLine("   ?? GET/POST/PUT/DELETE /api/users - Gestión de usuarios (Solo Admin)");
+        Console.WriteLine("   ? REMOVIDO: POST /api/auth/register - Ya no disponible");
+        Console.WriteLine("   ?? Los clientes reciben credenciales por email cuando el admin los crea");
     }
     catch (Exception ex)
     {
@@ -244,5 +253,6 @@ Console.WriteLine("?? SmartAgro API iniciada correctamente");
 Console.WriteLine($"?? Swagger UI: http://localhost:5194/swagger");
 Console.WriteLine($"?? API Base URL: http://localhost:5194/api");
 Console.WriteLine($"?? Admin por defecto: admin@smartagro.com / Admin123!");
+Console.WriteLine($"?? FLUJO DE REGISTRO: Solo admins pueden crear clientes");
 
 app.Run();

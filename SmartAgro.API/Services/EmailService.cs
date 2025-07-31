@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using SmartAgro.Models.DTOs;
+using System.Net;
 using System.Net.Mail;
 
 namespace SmartAgro.API.Services
@@ -14,220 +15,465 @@ namespace SmartAgro.API.Services
             _logger = logger;
         }
 
+        public async Task<bool> EnviarCredencialesClienteAsync(string emailDestino, string nombreCliente, string usuario, string contraseña)
+        {
+            try
+            {
+                var emailSettings = _configuration.GetSection("EmailSettings");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = "🌱 Bienvenido a SmartAgro - Credenciales de Acceso",
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(emailDestino);
+
+                mailMessage.Body = $@"
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+                        .header {{ text-align: center; margin-bottom: 30px; }}
+                        .logo {{ font-size: 24px; color: #2E8B57; font-weight: bold; }}
+                        .credentials {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2E8B57; }}
+                        .credential-item {{ margin-bottom: 10px; }}
+                        .credential-label {{ font-weight: bold; color: #2E8B57; }}
+                        .credential-value {{ background-color: #e8f5e8; padding: 5px 10px; border-radius: 4px; font-family: monospace; }}
+                        .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <div class='logo'>🌱 SmartAgro IoT Solutions</div>
+                            <h1 style='color: #2E8B57; margin: 10px 0;'>¡Bienvenido!</h1>
+                        </div>
+                        
+                        <p>Hola <strong>{nombreCliente}</strong>,</p>
+                        <p>Tu cuenta en SmartAgro ha sido creada exitosamente. Aquí están tus credenciales de acceso:</p>
+                        
+                        <div class='credentials'>
+                            <h3 style='color: #2E8B57; margin-top: 0;'>🔐 Credenciales de Acceso</h3>
+                            <div class='credential-item'>
+                                <span class='credential-label'>Usuario:</span><br>
+                                <span class='credential-value'>{usuario}</span>
+                            </div>
+                            <div class='credential-item'>
+                                <span class='credential-label'>Contraseña:</span><br>
+                                <span class='credential-value'>{contraseña}</span>
+                            </div>
+                        </div>
+                        
+                        <p><strong>Enlace de acceso:</strong> <a href='http://localhost:4200/login'>Iniciar Sesión</a></p>
+                        
+                        <p><strong>Importante:</strong> Te recomendamos cambiar tu contraseña después del primer inicio de sesión.</p>
+                        
+                        <div class='footer'>
+                            <p>¡Gracias por elegir SmartAgro IoT Solutions!</p>
+                            <p>Si tienes problemas para acceder, contáctanos: soporte@smartagro.com</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+                await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"✅ Credenciales enviadas a: {emailDestino}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando credenciales a: {emailDestino}");
+                return false;
+            }
+        }
+
+        public async Task<bool> EnviarSolicitudCuentaAsync(AccountRequestDto solicitud)
+        {
+            try
+            {
+                var emailSettings = _configuration.GetSection("EmailSettings");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = $"🌱 Nueva Solicitud de Cuenta - {solicitud.Nombre} {solicitud.Apellidos}",
+                    IsBodyHtml = true
+                };
+
+                // ✅ CAMBIO: Usar el AdminEmail de configuración
+                var adminEmail = emailSettings["AdminEmail"] ?? emailSettings["SenderEmail"];
+                mailMessage.To.Add(adminEmail!);
+
+                _logger.LogInformation($"📧 Enviando solicitud de cuenta al admin: {adminEmail}");
+
+                mailMessage.Body = $@"
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+                .header {{ text-align: center; margin-bottom: 30px; }}
+                .logo {{ font-size: 24px; color: #2E8B57; font-weight: bold; }}
+                .content {{ line-height: 1.6; color: #333; }}
+                .info-section {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .info-row {{ display: flex; margin-bottom: 10px; }}
+                .info-label {{ font-weight: bold; min-width: 120px; color: #2E8B57; }}
+                .info-value {{ flex: 1; }}
+                .message-box {{ background-color: #e8f5e8; padding: 15px; border-left: 4px solid #2E8B57; margin: 20px 0; }}
+                .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }}
+                .btn {{ display: inline-block; background-color: #2E8B57; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 5px; }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <div class='logo'>🌱 SmartAgro IoT Solutions</div>
+                    <h1 style='color: #2E8B57; margin: 10px 0;'>Nueva Solicitud de Cuenta</h1>
+                </div>
+                
+                <div class='content'>
+                    <p>Se ha recibido una nueva solicitud de cuenta de cliente con los siguientes datos:</p>
+                    
+                    <div class='info-section'>
+                        <h3 style='color: #2E8B57; margin-top: 0;'>📋 Información del Solicitante</h3>
+                        <div class='info-row'>
+                            <span class='info-label'>Nombre:</span>
+                            <span class='info-value'>{solicitud.Nombre} {solicitud.Apellidos}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Email:</span>
+                            <span class='info-value'>{solicitud.Email}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Teléfono:</span>
+                            <span class='info-value'>{solicitud.Telefono ?? "No proporcionado"}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Empresa:</span>
+                            <span class='info-value'>{solicitud.Empresa ?? "No proporcionada"}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Fecha:</span>
+                            <span class='info-value'>{solicitud.FechaSolicitud:dd/MM/yyyy HH:mm}</span>
+                        </div>
+                    </div>
+                    
+                    <div class='message-box'>
+                        <h4 style='color: #2E8B57; margin-top: 0;'>💬 Mensaje del solicitante:</h4>
+                        <p>{solicitud.Mensaje}</p>
+                    </div>
+                    
+                    <div style='text-align: center; margin: 30px 0;'>
+                        <p><strong>📋 Acciones recomendadas:</strong></p>
+                        <ol style='text-align: left; max-width: 400px; margin: 0 auto;'>
+                            <li>Revisar la información del solicitante</li>
+                            <li>Contactar al cliente para confirmar detalles</li>
+                            <li>Crear la cuenta desde el panel de administración</li>
+                            <li>Las credenciales se enviarán automáticamente por email</li>
+                        </ol>
+                        
+                        <div style='margin-top: 20px;'>
+                            <a href='http://localhost:4200/admin/usuarios' class='btn'>🔗 Crear Cuenta en Panel Admin</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class='footer'>
+                    <p>Este email fue generado automáticamente por el sistema SmartAgro IoT Solutions.</p>
+                    <p><strong>Enviado a:</strong> {adminEmail}</p>
+                    <p>Para crear la cuenta, inicia sesión en el panel de administración.</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+                await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"✅ Email de solicitud enviado para: {solicitud.Email} al admin: {adminEmail}");
+
+                // También enviar confirmación al solicitante
+                await EnviarConfirmacionSolicitudAsync(solicitud);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando email de solicitud: {solicitud.Email}");
+                return false;
+            }
+        }
+
+        // ✅ MÉTODO FALTANTE 1
         public async Task<bool> EnviarEmailAsync(string destinatario, string asunto, string mensaje)
         {
             try
             {
-                // Obtener configuración de email
                 var emailSettings = _configuration.GetSection("EmailSettings");
-                var smtpServer = emailSettings["SmtpServer"];
-                var smtpPort = int.Parse(emailSettings["SmtpPort"] ?? "587");
-                var senderEmail = emailSettings["SenderEmail"];
-                var senderName = emailSettings["SenderName"];
-                var username = emailSettings["Username"];
-                var password = emailSettings["Password"];
-                var enableSsl = bool.Parse(emailSettings["EnableSsl"] ?? "true");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
 
-                _logger.LogInformation($"📧 Intentando enviar email a: {destinatario}");
-                _logger.LogInformation($"🔧 Configuración: SMTP={smtpServer}:{smtpPort}, SSL={enableSsl}");
-                _logger.LogInformation($"👤 Remitente: {senderEmail}");
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = asunto,
+                    Body = mensaje,
+                    IsBodyHtml = false
+                };
 
-                // Crear el mensaje
-                using var mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress(senderEmail!, senderName);
                 mailMessage.To.Add(destinatario);
-                mailMessage.Subject = asunto;
-                mailMessage.Body = mensaje;
-                mailMessage.IsBodyHtml = false;
 
-                // Configurar SMTP con configuración mejorada
-                using var smtpClient = new SmtpClient(smtpServer, smtpPort);
-                smtpClient.Credentials = new NetworkCredential(username, password);
-                smtpClient.EnableSsl = enableSsl;
-                smtpClient.UseDefaultCredentials = false; // Importante para Gmail
-                smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-
-                _logger.LogInformation($"🚀 Enviando email...");
-
-                // Enviar email
                 await smtpClient.SendMailAsync(mailMessage);
-
-                _logger.LogInformation($"✅ Email enviado exitosamente a: {destinatario}");
+                _logger.LogInformation($"✅ Email genérico enviado a: {destinatario}");
                 return true;
-            }
-            catch (SmtpException smtpEx)
-            {
-                _logger.LogError(smtpEx, $"❌ Error SMTP al enviar email a: {destinatario}");
-                _logger.LogError($"❌ SMTP Error Code: {smtpEx.StatusCode}");
-                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"❌ Error general al enviar email a: {destinatario}");
+                _logger.LogError(ex, $"❌ Error enviando email genérico a: {destinatario}");
                 return false;
             }
         }
 
+        // ✅ MÉTODO FALTANTE 2
         public async Task<bool> EnviarEmailContactoAsync(string nombre, string email, string asunto, string mensaje)
         {
-            var contenido = $@"
-📬 NUEVO MENSAJE DE CONTACTO - SmartAgro IoT Solutions
-
-👤 Cliente: {nombre}
-📧 Email del Cliente: {email}
-🏢 Empresa: (No especificada)
-📱 Teléfono: (No especificado)
-📋 Asunto: {asunto}
-
-💬 Mensaje:
-{mensaje}
-
---
-📅 Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}
-🌐 Enviado desde: SmartAgro IoT Solutions - Formulario de Contacto
-📍 Origen: Sitio Web
-
-⚡ ACCIÓN REQUERIDA: 
-Responder al cliente ({email}) en las próximas 24 horas.
-
---
-SmartAgro IoT Solutions
-Sistema de Gestión de Contactos
-            ";
-
-            var resultado = await EnviarEmailAsync("cortezdc254@gmail.com", $"[SmartAgro] 📬 Nuevo Contacto: {asunto}", contenido);
-
-            if (resultado)
+            try
             {
-                _logger.LogInformation($"📧 Email de contacto enviado exitosamente desde: {email}");
-            }
-            else
-            {
-                _logger.LogError($"❌ Falló el envío de email de contacto desde: {email}");
-            }
+                var emailSettings = _configuration.GetSection("EmailSettings");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
 
-            return resultado;
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = $"📞 Contacto desde Web - {asunto}",
+                    IsBodyHtml = true
+                };
+
+                // ✅ CAMBIO: Usar el AdminEmail de configuración
+                var adminEmail = emailSettings["AdminEmail"] ?? emailSettings["SenderEmail"];
+                mailMessage.To.Add(adminEmail!);
+
+                mailMessage.Body = $@"
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+                .container {{ max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+                .header {{ text-align: center; margin-bottom: 30px; }}
+                .logo {{ font-size: 24px; color: #2E8B57; font-weight: bold; }}
+                .info-box {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }}
+                .message-box {{ background-color: #e8f5e8; padding: 15px; border-left: 4px solid #2E8B57; margin: 20px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <div class='logo'>🌱 SmartAgro IoT Solutions</div>
+                    <h1 style='color: #2E8B57; margin: 10px 0;'>Nuevo Mensaje de Contacto</h1>
+                </div>
+                
+                <div class='info-box'>
+                    <h3 style='color: #2E8B57; margin-top: 0;'>📋 Información del Contacto</h3>
+                    <p><strong>Nombre:</strong> {nombre}</p>
+                    <p><strong>Email:</strong> {email}</p>
+                    <p><strong>Asunto:</strong> {asunto}</p>
+                    <p><strong>Fecha:</strong> {DateTime.Now:dd/MM/yyyy HH:mm}</p>
+                </div>
+                
+                <div class='message-box'>
+                    <h4 style='color: #2E8B57; margin-top: 0;'>💬 Mensaje:</h4>
+                    <p>{mensaje}</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+                await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"✅ Email de contacto enviado desde: {email} al admin: {adminEmail}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando email de contacto desde: {email}");
+                return false;
+            }
         }
 
+        // ✅ MÉTODO FALTANTE 3
         public async Task<bool> EnviarEmailCotizacionAsync(string email, string nombreCliente, string numeroCotizacion)
         {
-            var contenido = $@"
-¡Hola {nombreCliente}!
-
-Hemos recibido tu solicitud de cotización con el número: {numeroCotizacion}
-
-📋 ¿Qué sigue ahora?
-• Nuestro equipo de expertos revisará tu proyecto en detalle
-• Te contactaremos en las próximas 24 horas laborables
-• Recibirás una propuesta personalizada basada en tus necesidades
-• Un especialista resolverá todas tus dudas
-
-💡 Mientras tanto:
-• Revisa nuestros productos y casos de éxito en nuestra página web
-• Si tienes preguntas urgentes, contáctanos al WhatsApp
-• Prepara cualquier información adicional que consideres relevante
-
-🌱 En SmartAgro IoT Solutions transformamos la agricultura tradicional en agricultura inteligente, 
-ayudando a optimizar recursos, aumentar rendimientos y hacer más sostenible tu producción.
-
-¡Gracias por confiar en nosotros para llevar tu proyecto al siguiente nivel!
-
---
-Equipo SmartAgro IoT Solutions
-📧 cortezdc254@gmail.com
-📱 WhatsApp: +52 477 123 4567
-🌐 www.smartagro.com
-📍 León de los Aldama, Guanajuato, México
-
-💚 Juntos cultivamos el futuro de la agricultura
-            ";
-
-            var resultado = await EnviarEmailAsync(email, $"✅ Cotización #{numeroCotizacion} - SmartAgro IoT Solutions", contenido);
-
-            if (resultado)
+            try
             {
-                _logger.LogInformation($"📧 Email de cotización enviado exitosamente a cliente: {email}");
-            }
-            else
-            {
-                _logger.LogError($"❌ Falló el envío de email de cotización a: {email}");
-            }
+                var emailSettings = _configuration.GetSection("EmailSettings");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
 
-            return resultado;
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = $"🌱 Cotización SmartAgro - #{numeroCotizacion}",
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(email);
+
+                mailMessage.Body = $@"
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+                        .header {{ text-align: center; margin-bottom: 30px; }}
+                        .logo {{ font-size: 24px; color: #2E8B57; font-weight: bold; }}
+                        .cotizacion-box {{ background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2E8B57; }}
+                        .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <div class='logo'>🌱 SmartAgro IoT Solutions</div>
+                            <h1 style='color: #2E8B57; margin: 10px 0;'>Tu Cotización está Lista</h1>
+                        </div>
+                        
+                        <p>Hola <strong>{nombreCliente}</strong>,</p>
+                        <p>Hemos preparado tu cotización personalizada para el sistema de riego inteligente.</p>
+                        
+                        <div class='cotizacion-box'>
+                            <h3 style='color: #2E8B57; margin-top: 0;'>📋 Cotización #{numeroCotizacion}</h3>
+                            <p>Tu cotización ha sido generada y está disponible para revisión.</p>
+                            <p><strong>Fecha:</strong> {DateTime.Now:dd/MM/yyyy}</p>
+                        </div>
+                        
+                        <p>Nuestro equipo se pondrá en contacto contigo para revisar los detalles y resolver cualquier duda.</p>
+                        
+                        <div class='footer'>
+                            <p>¡Gracias por elegir SmartAgro IoT Solutions!</p>
+                            <p>Para más información: soporte@smartagro.com | +52 (477) 123-4567</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+                await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"✅ Email de cotización enviado a: {email} - #{numeroCotizacion}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando cotización a: {email} - #{numeroCotizacion}");
+                return false;
+            }
         }
 
-        public async Task<bool> EnviarCredencialesClienteAsync(string email, string nombreCliente, string usuario, string password)
+        // ✅ MÉTODO PRIVADO (ya existía)
+        private async Task<bool> EnviarConfirmacionSolicitudAsync(AccountRequestDto solicitud)
         {
-            var contenido = $@"
-¡Bienvenido a SmartAgro IoT Solutions, {nombreCliente}!
-
-Te damos la más cordial bienvenida a nuestra plataforma de gestión agrícola inteligente. 
-Has sido registrado exitosamente como cliente en nuestro sistema.
-
-🔐 TUS CREDENCIALES DE ACCESO:
-👤 Usuario: {usuario}
-🔑 Contraseña: {password}
-
-🌐 ACCESO AL SISTEMA:
-Puedes ingresar a tu cuenta desde nuestra plataforma web usando las credenciales proporcionadas arriba.
-
-📋 EN TU CUENTA PODRÁS:
-• Ver el historial completo de tus compras y facturas
-• Acceder a documentación técnica de tus productos
-• Descargar manuales de instalación y guías de uso
-• Actualizar tu información personal y de contacto
-• Dejar comentarios y valoraciones sobre nuestros productos
-• Solicitar soporte técnico especializado
-• Consultar el estado de tus pedidos y servicios
-
-🔒 IMPORTANTE - SEGURIDAD:
-• Te recomendamos CAMBIAR tu contraseña en el primer acceso
-• Mantén tus credenciales seguras y NO las compartas
-• Si tienes problemas de acceso, contáctanos inmediatamente
-• Tu cuenta está protegida con las mejores medidas de seguridad
-
-📞 SOPORTE AL CLIENTE 24/7:
-Si tienes alguna duda o necesitas ayuda, nuestro equipo está disponible:
-• 📧 Email de soporte: cortezdc254@gmail.com
-• 📱 WhatsApp: +52 477 123 4567
-• ⏰ Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM
-• 🆘 Emergencias técnicas: 24/7
-
-🎯 PRÓXIMOS PASOS:
-1. Ingresa a tu cuenta con las credenciales proporcionadas
-2. Actualiza tu información de perfil
-3. Cambia tu contraseña por una personalizada
-4. Explora la documentación de tus productos
-5. Configura tus preferencias de notificaciones
-
-🌱 ¡Gracias por confiar en SmartAgro IoT Solutions!
-Estamos comprometidos en brindarte la mejor experiencia y tecnología de vanguardia 
-para hacer crecer tu proyecto agrícola de manera sostenible e inteligente.
-
-Bienvenido a la revolución agrícola del futuro.
-
---
-Equipo SmartAgro IoT Solutions
-📍 León de los Aldama, Guanajuato, México
-🌐 www.smartagro.com
-📧 cortezdc254@gmail.com
-
-💚 Juntos cultivamos el futuro de la agricultura
-🚀 Tecnología IoT al servicio del campo mexicano
-            ";
-
-            var resultado = await EnviarEmailAsync(email, "🔐 Bienvenido a SmartAgro - Credenciales de Acceso", contenido);
-
-            if (resultado)
+            try
             {
-                _logger.LogInformation($"📧 Credenciales enviadas exitosamente a cliente: {email}");
-            }
-            else
-            {
-                _logger.LogError($"❌ Falló el envío de credenciales a: {email}");
-            }
+                var emailSettings = _configuration.GetSection("EmailSettings");
+                var smtpClient = new SmtpClient(emailSettings["SmtpServer"])
+                {
+                    Port = int.Parse(emailSettings["SmtpPort"]!),
+                    Credentials = new NetworkCredential(
+                        emailSettings["Username"],
+                        emailSettings["Password"]
+                    ),
+                    EnableSsl = bool.Parse(emailSettings["EnableSsl"]!)
+                };
 
-            return resultado;
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(emailSettings["SenderEmail"]!, emailSettings["SenderName"]),
+                    Subject = "🌱 Solicitud de cuenta recibida - SmartAgro",
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(solicitud.Email);
+
+                mailMessage.Body = $@"
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+                        .header {{ text-align: center; margin-bottom: 30px; }}
+                        .logo {{ font-size: 24px; color: #2E8B57; font-weight: bold; }}
+                        .success-box {{ background-color: #e8f5e8; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; border-left: 4px solid #2E8B57; }}
+                        .footer {{ text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <div class='logo'>🌱 SmartAgro IoT Solutions</div>
+                            <h1 style='color: #2E8B57; margin: 10px 0;'>¡Solicitud Recibida!</h1>
+                        </div>
+                        
+                        <div class='success-box'>
+                            <h2 style='color: #2E8B57; margin-top: 0;'>✅ Tu solicitud ha sido enviada exitosamente</h2>
+                            <p>Hola <strong>{solicitud.Nombre}</strong>, hemos recibido tu solicitud para crear una cuenta en SmartAgro.</p>
+                        </div>
+                        
+                        <p>Nos pondremos en contacto contigo en las próximas 24 horas.</p>
+                        
+                        <div class='footer'>
+                            <p>Gracias por tu interés en SmartAgro IoT Solutions.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+                await smtpClient.SendMailAsync(mailMessage);
+                _logger.LogInformation($"✅ Email de confirmación enviado a: {solicitud.Email}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando confirmación a: {solicitud.Email}");
+                return false;
+            }
         }
     }
 }

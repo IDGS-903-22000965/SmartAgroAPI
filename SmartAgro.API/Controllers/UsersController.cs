@@ -1,5 +1,4 @@
-﻿// SmartAgro.API/Controllers/UsersController.cs
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartAgro.API.Services;
 using SmartAgro.Models.DTOs.Users;
@@ -12,10 +11,12 @@ namespace SmartAgro.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, ILogger<UsersController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -57,15 +58,53 @@ namespace SmartAgro.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
         {
+            // ✅ LOGS DE DEBUG DETALLADOS
+            _logger.LogInformation($"🔥 RECIBIDA solicitud de creación de usuario");
+            _logger.LogInformation($"🔧 DEBUG - Nombre: '{createUserDto?.Nombre ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Apellidos: '{createUserDto?.Apellidos ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Email: '{createUserDto?.Email ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Password Length: {createUserDto?.Password?.Length ?? 0}");
+            _logger.LogInformation($"🔧 DEBUG - Telefono: '{createUserDto?.Telefono ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Direccion: '{createUserDto?.Direccion ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Rol: '{createUserDto?.Rol ?? "NULL"}'");
+            _logger.LogInformation($"🔧 DEBUG - Activo: {createUserDto?.Activo}");
+            _logger.LogInformation($"🔧 DEBUG - ModelState.IsValid: {ModelState.IsValid}");
+
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning($"⚠️ ModelState inválido para usuario: {createUserDto?.Email ?? "NULL"}");
+
+                // ✅ LOGS DETALLADOS DE ERRORES DE VALIDACIÓN
+                foreach (var error in ModelState)
+                {
+                    foreach (var errorMessage in error.Value.Errors)
+                    {
+                        _logger.LogWarning($"❌ Campo '{error.Key}': {errorMessage.ErrorMessage}");
+                    }
+                }
+
                 return BadRequest(ModelState);
+            }
 
-            var result = await _userService.CreateUserAsync(createUserDto);
+            try
+            {
+                _logger.LogInformation($"📝 Llamando a UserService.CreateUserAsync para: {createUserDto.Email}");
+                var result = await _userService.CreateUserAsync(createUserDto);
 
-            if (!result.Success)
-                return BadRequest(new { message = result.Message });
+                if (!result.Success)
+                {
+                    _logger.LogError($"❌ Error desde UserService para {createUserDto.Email}: {result.Message}");
+                    return BadRequest(new { message = result.Message });
+                }
 
-            return Ok(new { message = result.Message });
+                _logger.LogInformation($"✅ Usuario creado exitosamente: {createUserDto.Email}");
+                return Ok(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"💥 Excepción no controlada al crear usuario: {createUserDto?.Email ?? "NULL"}");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
         }
 
         /// <summary>

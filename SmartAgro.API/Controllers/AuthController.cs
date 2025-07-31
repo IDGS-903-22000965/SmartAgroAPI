@@ -9,43 +9,55 @@ namespace SmartAgro.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Iniciar sesión de usuario
+        /// </summary>
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Modelo inválido en login para: {Email}", loginDto.Email);
                 return BadRequest(ModelState);
+            }
+
+            _logger.LogInformation("Intento de login para: {Email}", loginDto.Email);
 
             var result = await _authService.LoginAsync(loginDto);
 
             if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Login fallido para: {Email} - {Message}", loginDto.Email, result.Message);
                 return Unauthorized(result);
+            }
 
+            _logger.LogInformation("Login exitoso para: {Email}", loginDto.Email);
             return Ok(result);
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto registerDto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var result = await _authService.RegisterAsync(registerDto);
-
-            if (!result.IsSuccess)
-                return BadRequest(result);
-
-            return Ok(result);
-        }
-
+        /// <summary>
+        /// Refrescar token de acceso
+        /// </summary>
         [HttpPost("refresh-token")]
         public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] string token)
         {
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest(new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Token es requerido"
+                });
+            }
+
             var result = await _authService.RefreshTokenAsync(token);
 
             if (!result.IsSuccess)
@@ -53,5 +65,38 @@ namespace SmartAgro.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Cerrar sesión
+        /// </summary>
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                // En este caso, el logout se maneja principalmente en el frontend
+                // eliminando el token del localStorage, pero podemos registrar la acción
+                _logger.LogInformation("Usuario cerró sesión");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Sesión cerrada exitosamente"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error durante logout");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Error interno del servidor"
+                });
+            }
+        }
+
+        // ❌ REMOVIDO: El endpoint de registro ya no existe
+        // Los clientes son registrados exclusivamente por administradores
+        // a través del endpoint POST /api/users en el UsersController
     }
 }
