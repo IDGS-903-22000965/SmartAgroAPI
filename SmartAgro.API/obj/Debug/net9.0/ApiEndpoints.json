@@ -78,6 +78,409 @@
     ]
   },
   {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "GetMyComments",
+    "RelativePath": "api/client/comments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.ClientCommentDto, SmartAgro.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "CreateComment",
+    "RelativePath": "api/client/comments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "createCommentDto",
+        "Type": "SmartAgro.Models.DTOs.CreateClientCommentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "UpdateComment",
+    "RelativePath": "api/client/comments/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updateCommentDto",
+        "Type": "SmartAgro.Models.DTOs.UpdateClientCommentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "DeleteComment",
+    "RelativePath": "api/client/comments/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "GetCommentableProducts",
+    "RelativePath": "api/client/comments/available-products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.CommentableProductDto, SmartAgro.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientCommentsController",
+    "Method": "GetCommentStats",
+    "RelativePath": "api/client/comments/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.ClientCommentStatsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientDashboardController",
+    "Method": "GetClientDashboard",
+    "RelativePath": "api/client/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.ClientDashboardDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientDashboardController",
+    "Method": "GetActivityChart",
+    "RelativePath": "api/client/dashboard/activity-chart",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.ClientActivityChartDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientDashboardController",
+    "Method": "GetNotifications",
+    "RelativePath": "api/client/dashboard/notifications",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.ClientNotificationDto, SmartAgro.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientProfileController",
+    "Method": "GetClientProfile",
+    "RelativePath": "api/client/profile",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.Users.ClientProfileDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientProfileController",
+    "Method": "UpdateClientProfile",
+    "RelativePath": "api/client/profile",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "updateDto",
+        "Type": "SmartAgro.Models.DTOs.Users.UpdateClientProfileDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientProfileController",
+    "Method": "ChangePassword",
+    "RelativePath": "api/client/profile/change-password",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "changePasswordDto",
+        "Type": "SmartAgro.Models.DTOs.Users.ChangePasswordDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientProfileController",
+    "Method": "GetClientStats",
+    "RelativePath": "api/client/profile/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.Users.ClientStatsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientPurchasesController",
+    "Method": "GetMyPurchases",
+    "RelativePath": "api/client/purchases",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.Ventas.ClientPurchaseDto, SmartAgro.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientPurchasesController",
+    "Method": "GetPurchaseDetail",
+    "RelativePath": "api/client/purchases/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.Ventas.ClientPurchaseDetailDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientPurchasesController",
+    "Method": "GetOwnedProducts",
+    "RelativePath": "api/client/purchases/products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.Ventas.ClientOwnedProductDto, SmartAgro.Models, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientPurchasesController",
+    "Method": "GetPurchaseStats",
+    "RelativePath": "api/client/purchases/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.Ventas.ClientPurchaseStatsDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientResourcesController",
+    "Method": "GetMyProductResources",
+    "RelativePath": "api/client/resources",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[SmartAgro.Models.DTOs.ClientProductResourceDto, SmartAgro.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientResourcesController",
+    "Method": "GetProductResources",
+    "RelativePath": "api/client/resources/product/{productId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.ProductResourceDetailDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "SmartAgro.API.Controllers.ClientResourcesController",
+    "Method": "GetProductWarranty",
+    "RelativePath": "api/client/resources/warranty/{productId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SmartAgro.Models.DTOs.ProductWarrantyDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "SmartAgro.API.Controllers.ComprasProveedorController",
     "Method": "GetCompras",
     "RelativePath": "api/ComprasProveedor",

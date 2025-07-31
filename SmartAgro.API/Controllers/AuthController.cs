@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SmartAgro.API.Services;
 using SmartAgro.Models.DTOs.Auth;
 
@@ -21,6 +22,7 @@ namespace SmartAgro.API.Controllers
         /// Iniciar sesión de usuario
         /// </summary>
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -95,8 +97,6 @@ namespace SmartAgro.API.Controllers
             }
         }
 
-        // ❌ REMOVIDO: El endpoint de registro ya no existe
-        // Los clientes son registrados exclusivamente por administradores
-        // a través del endpoint POST /api/users en el UsersController
+        
     }
 }
