@@ -21,8 +21,7 @@ namespace SmartAgro.API.Services
         Task<VentaDetalleDto?> ObtenerVentaDetalleAsync(int id);
         Task<List<VentaListDto>> ObtenerVentasPorUsuarioAsync(string usuarioId);
         Task<ServiceResult> CrearVentaAsync(CreateVentaDto createVentaDto);
-        Task<ServiceResult> CrearVentaDesdeCotizacionAsync(int cotizacionId, CreateVentaFromCotizacionDto ventaDto);
-        Task<ServiceResult> ActualizarEstadoVentaAsync(int id, ActualizarEstadoVentaDto estadoDto);
+        Task<ServiceResult> CrearVentaDesdeCotizacionAsync(int cotizacionId, CreateVentaFromCotizacionDto ventaDto, string currentUserId); Task<ServiceResult> ActualizarEstadoVentaAsync(int id, ActualizarEstadoVentaDto estadoDto);
 
         // Métodos de estadísticas y reportes
         Task<VentaStatsDto> ObtenerEstadisticasVentasAsync();

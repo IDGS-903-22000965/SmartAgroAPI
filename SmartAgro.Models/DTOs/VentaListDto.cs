@@ -45,7 +45,18 @@ namespace SmartAgro.Models.DTOs.Ventas
 
         public List<DetalleVentaDto> Detalles { get; set; } = new List<DetalleVentaDto>();
     }
+    public class CrearVentaDesdeCotizacionDto
+    {
+        public string NombreCliente { get; set; } = string.Empty;
+        public string? EmailCliente { get; set; }
+        public string? TelefonoCliente { get; set; }
+        public string? DireccionEntrega { get; set; }
+        public string MetodoPago { get; set; } = string.Empty;
+        public string? Observaciones { get; set; }
+        public List<DetalleVentaDto> Detalles { get; set; } = new();
+    }
 
+    
     // DTO para los detalles de una venta
     public class DetalleVentaDto
     {

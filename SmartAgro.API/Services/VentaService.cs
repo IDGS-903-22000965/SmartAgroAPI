@@ -317,7 +317,7 @@ namespace SmartAgro.API.Services
                 return ServiceResult.ErrorResult($"Error al crear venta: {ex.Message}");
             }
         }
-        public async Task<ServiceResult> CrearVentaDesdeCotizacionAsync(int cotizacionId, CreateVentaFromCotizacionDto ventaDto)
+        public async Task<ServiceResult> CrearVentaDesdeCotizacionAsync(int cotizacionId, CreateVentaFromCotizacionDto ventaDto, string currentUserId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -351,7 +351,7 @@ namespace SmartAgro.API.Services
                 var venta = new Venta
                 {
                     NumeroVenta = numeroVenta,
-                    UsuarioId = cotizacion.UsuarioId ?? string.Empty,
+                    UsuarioId = cotizacion.UsuarioId,
                     CotizacionId = cotizacionId,
                     NombreCliente = cotizacion.NombreCliente,
                     EmailCliente = cotizacion.EmailCliente,

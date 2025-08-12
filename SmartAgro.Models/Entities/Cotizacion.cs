@@ -44,6 +44,7 @@ namespace SmartAgro.Models.Entities
 
         public bool EnergiaElectricaDisponible { get; set; }
 
+
         [StringLength(1000)]
         public string? RequierimientosEspeciales { get; set; }
 

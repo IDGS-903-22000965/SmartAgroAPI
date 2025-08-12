@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SmartAgro.API.Services;
+using Microsoft.EntityFrameworkCore;
+using SmartAgro.Data;
 using SmartAgro.Models.Entities;
 
 namespace SmartAgro.API.Controllers
@@ -10,11 +11,11 @@ namespace SmartAgro.API.Controllers
     [Authorize(Roles = "Admin")]
     public class ProveedorController : ControllerBase
     {
-        private readonly IProveedorService _proveedorService;
+        private readonly SmartAgroDbContext _context;
 
-        public ProveedorController(IProveedorService proveedorService)
+        public ProveedorController(SmartAgroDbContext context)
         {
-            _proveedorService = proveedorService;
+            _context = context;
         }
 
         [HttpGet]
@@ -22,11 +23,32 @@ namespace SmartAgro.API.Controllers
         {
             try
             {
-                var proveedores = await _proveedorService.ObtenerProveedoresAsync();
+                var proveedores = await _context.Proveedores
+                    .Where(p => p.Activo)
+                    .Select(p => new
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        RazonSocial = p.RazonSocial,
+                        RFC = p.RFC,
+                        Email = p.Email,
+                        Telefono = p.Telefono,
+                        Direccion = p.Direccion,
+                        ContactoPrincipal = p.ContactoPrincipal,
+                        Activo = p.Activo,
+                        FechaRegistro = p.FechaRegistro,
+                        CantidadMateriasPrimas = p.MateriasPrimas.Count(m => m.Activo)
+                    })
+                    .OrderBy(p => p.Nombre)
+                    .ToListAsync();
+
+                Console.WriteLine($"✅ Proveedores encontrados: {proveedores.Count}");
+
                 return Ok(new { success = true, data = proveedores });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error: {ex.Message}");
                 return StatusCode(500, new
                 {
                     success = false,
@@ -41,7 +63,34 @@ namespace SmartAgro.API.Controllers
         {
             try
             {
-                var proveedor = await _proveedorService.ObtenerProveedorPorIdAsync(id);
+                var proveedor = await _context.Proveedores
+                    .Where(p => p.Id == id)
+                    .Select(p => new
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        RazonSocial = p.RazonSocial,
+                        RFC = p.RFC,
+                        Email = p.Email,
+                        Telefono = p.Telefono,
+                        Direccion = p.Direccion,
+                        ContactoPrincipal = p.ContactoPrincipal,
+                        Activo = p.Activo,
+                        FechaRegistro = p.FechaRegistro,
+                        MateriasPrimas = p.MateriasPrimas
+                            .Where(m => m.Activo)
+                            .Select(m => new
+                            {
+                                Id = m.Id,
+                                Nombre = m.Nombre,
+                                UnidadMedida = m.UnidadMedida,
+                                Stock = m.Stock,
+                                CostoUnitario = m.CostoUnitario
+                            })
+                            .ToList()
+                    })
+                    .FirstOrDefaultAsync();
+
                 if (proveedor == null)
                     return NotFound(new { success = false, message = "Proveedor no encontrado" });
 
@@ -66,12 +115,47 @@ namespace SmartAgro.API.Controllers
 
             try
             {
-                var nuevoProveedor = await _proveedorService.CrearProveedorAsync(proveedor);
+                // Verificar que no exista un proveedor con el mismo RFC
+                if (!string.IsNullOrEmpty(proveedor.RFC))
+                {
+                    var rfcExiste = await _context.Proveedores
+                        .AnyAsync(p => p.RFC == proveedor.RFC && p.Activo);
+
+                    if (rfcExiste)
+                    {
+                        return BadRequest(new { success = false, message = "Ya existe un proveedor con ese RFC" });
+                    }
+                }
+
+                proveedor.FechaRegistro = DateTime.Now;
+                proveedor.Activo = true;
+
+                _context.Proveedores.Add(proveedor);
+                await _context.SaveChangesAsync();
+
+                var proveedorCreado = await _context.Proveedores
+                    .Where(p => p.Id == proveedor.Id)
+                    .Select(p => new
+                    {
+                        Id = p.Id,
+                        Nombre = p.Nombre,
+                        RazonSocial = p.RazonSocial,
+                        RFC = p.RFC,
+                        Email = p.Email,
+                        Telefono = p.Telefono,
+                        Direccion = p.Direccion,
+                        ContactoPrincipal = p.ContactoPrincipal,
+                        Activo = p.Activo,
+                        FechaRegistro = p.FechaRegistro,
+                        CantidadMateriasPrimas = 0
+                    })
+                    .FirstOrDefaultAsync();
+
                 return Ok(new
                 {
                     success = true,
                     message = "Proveedor creado exitosamente",
-                    data = nuevoProveedor
+                    data = proveedorCreado
                 });
             }
             catch (Exception ex)
@@ -93,10 +177,33 @@ namespace SmartAgro.API.Controllers
 
             try
             {
-                proveedor.Id = id;
-                var resultado = await _proveedorService.ActualizarProveedorAsync(proveedor);
-                if (!resultado)
+                var proveedorExistente = await _context.Proveedores.FindAsync(id);
+                if (proveedorExistente == null)
                     return NotFound(new { success = false, message = "Proveedor no encontrado" });
+
+                // Verificar RFC único (excluyendo el proveedor actual)
+                if (!string.IsNullOrEmpty(proveedor.RFC))
+                {
+                    var rfcExiste = await _context.Proveedores
+                        .AnyAsync(p => p.RFC == proveedor.RFC && p.Id != id && p.Activo);
+
+                    if (rfcExiste)
+                    {
+                        return BadRequest(new { success = false, message = "Ya existe otro proveedor con ese RFC" });
+                    }
+                }
+
+                // Actualizar campos
+                proveedorExistente.Nombre = proveedor.Nombre;
+                proveedorExistente.RazonSocial = proveedor.RazonSocial;
+                proveedorExistente.RFC = proveedor.RFC;
+                proveedorExistente.Email = proveedor.Email;
+                proveedorExistente.Telefono = proveedor.Telefono;
+                proveedorExistente.Direccion = proveedor.Direccion;
+                proveedorExistente.ContactoPrincipal = proveedor.ContactoPrincipal;
+                proveedorExistente.Activo = proveedor.Activo;
+
+                await _context.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -120,15 +227,38 @@ namespace SmartAgro.API.Controllers
         {
             try
             {
-                var resultado = await _proveedorService.EliminarProveedorAsync(id);
-                if (!resultado)
+                var proveedor = await _context.Proveedores.FindAsync(id);
+                if (proveedor == null)
                     return NotFound(new { success = false, message = "Proveedor no encontrado" });
 
-                return Ok(new
+                // Verificar si tiene materias primas asociadas
+                var tieneMateriasPrimas = await _context.MateriasPrimas
+                    .AnyAsync(m => m.ProveedorId == id);
+
+                if (tieneMateriasPrimas)
                 {
-                    success = true,
-                    message = "Proveedor eliminado exitosamente"
-                });
+                    // Solo desactivar en lugar de eliminar
+                    proveedor.Activo = false;
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Proveedor desactivado (tiene materias primas asociadas)"
+                    });
+                }
+                else
+                {
+                    // Eliminar completamente
+                    _context.Proveedores.Remove(proveedor);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Proveedor eliminado exitosamente"
+                    });
+                }
             }
             catch (Exception ex)
             {

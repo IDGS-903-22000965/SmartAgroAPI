@@ -21,11 +21,12 @@ namespace SmartAgro.API.Services
             _logger = logger;
         }
 
-        public async Task<Cotizacion> CrearCotizacionAsync(CotizacionRequestDto request)
+        // ✅ MÉTODO LIMPIO SIN ATRIBUTOS DE CONTROLLER
+        public async Task<Cotizacion> CrearCotizacionAsync(CotizacionRequestDto request, string? usuarioId = null)
         {
             try
             {
-                _logger.LogInformation($"🔄 Iniciando creación de cotización para: {request.EmailCliente}");
+                _logger.LogInformation($"🔄 Iniciando creación de cotización para: {request.EmailCliente}, Usuario: {usuarioId ?? "NULL"}");
 
                 // Calcular el costo basado en el área y tipo de cultivo
                 var costoCotizacion = await CalcularCostoCotizacionAsync(request);
@@ -36,6 +37,10 @@ namespace SmartAgro.API.Services
                 var cotizacion = new Cotizacion
                 {
                     NumeroCotizacion = await GenerarNumeroCotizacionAsync(),
+
+                    // 🔥 ASIGNAR EL USUARIO QUE CREA LA COTIZACIÓN
+                    UsuarioId = usuarioId,
+
                     NombreCliente = request.NombreCliente,
                     EmailCliente = request.EmailCliente,
                     TelefonoCliente = request.TelefonoCliente,
@@ -57,7 +62,7 @@ namespace SmartAgro.API.Services
                 _context.Cotizaciones.Add(cotizacion);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"✅ Cotización guardada con número: {cotizacion.NumeroCotizacion}");
+                _logger.LogInformation($"✅ Cotización guardada - Número: {cotizacion.NumeroCotizacion}, UsuarioId: {usuarioId ?? "NULL"}");
 
                 // Agregar detalles de la cotización
                 await AgregarDetallesCotizacionAsync(cotizacion, request);
@@ -97,31 +102,138 @@ namespace SmartAgro.API.Services
             }
         }
 
-        public async Task<List<Cotizacion>> ObtenerCotizacionesAsync()
+        public async Task<List<CotizacionResponseDto>> ObtenerCotizacionesAsync()
         {
-            return await _context.Cotizaciones
+            var cotizaciones = await _context.Cotizaciones
                 .Include(c => c.Detalles)
                 .ThenInclude(d => d.Producto)
                 .OrderByDescending(c => c.FechaCotizacion)
                 .ToListAsync();
+
+            return cotizaciones.Select(c => new CotizacionResponseDto
+            {
+                Id = c.Id,
+                NumeroCotizacion = c.NumeroCotizacion,
+                UsuarioId = c.UsuarioId,
+                NombreCliente = c.NombreCliente,
+                EmailCliente = c.EmailCliente,
+                TelefonoCliente = c.TelefonoCliente,
+                DireccionInstalacion = c.DireccionInstalacion,
+                AreaCultivo = c.AreaCultivo,
+                TipoCultivo = c.TipoCultivo,
+                TipoSuelo = c.TipoSuelo,
+                FuenteAguaDisponible = c.FuenteAguaDisponible,
+                EnergiaElectricaDisponible = c.EnergiaElectricaDisponible,
+                RequierimientosEspeciales = c.RequierimientosEspeciales,
+                Subtotal = c.Subtotal,
+                PorcentajeImpuesto = c.PorcentajeImpuesto,
+                Impuestos = c.Impuestos,
+                Total = c.Total,
+                FechaCotizacion = c.FechaCotizacion,
+                FechaVencimiento = c.FechaVencimiento,
+                Estado = c.Estado,
+                Observaciones = c.Observaciones,
+                Detalles = c.Detalles.Select(d => new DetalleCotizacionResponseDto
+                {
+                    Id = d.Id,
+                    ProductoId = d.ProductoId,
+                    Descripcion = d.Descripcion,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal,
+                    NombreProducto = d.Producto?.Nombre
+                }).ToList()
+            }).ToList();
         }
 
-        public async Task<Cotizacion?> ObtenerCotizacionPorIdAsync(int id)
+        public async Task<CotizacionResponseDto?> ObtenerCotizacionPorIdAsync(int id)
         {
-            return await _context.Cotizaciones
+            var cotizacion = await _context.Cotizaciones
                 .Include(c => c.Detalles)
                 .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cotizacion == null) return null;
+
+            return new CotizacionResponseDto
+            {
+                Id = cotizacion.Id,
+                NumeroCotizacion = cotizacion.NumeroCotizacion,
+                UsuarioId = cotizacion.UsuarioId,
+                NombreCliente = cotizacion.NombreCliente,
+                EmailCliente = cotizacion.EmailCliente,
+                TelefonoCliente = cotizacion.TelefonoCliente,
+                DireccionInstalacion = cotizacion.DireccionInstalacion,
+                AreaCultivo = cotizacion.AreaCultivo,
+                TipoCultivo = cotizacion.TipoCultivo,
+                TipoSuelo = cotizacion.TipoSuelo,
+                FuenteAguaDisponible = cotizacion.FuenteAguaDisponible,
+                EnergiaElectricaDisponible = cotizacion.EnergiaElectricaDisponible,
+                RequierimientosEspeciales = cotizacion.RequierimientosEspeciales,
+                Subtotal = cotizacion.Subtotal,
+                PorcentajeImpuesto = cotizacion.PorcentajeImpuesto,
+                Impuestos = cotizacion.Impuestos,
+                Total = cotizacion.Total,
+                FechaCotizacion = cotizacion.FechaCotizacion,
+                FechaVencimiento = cotizacion.FechaVencimiento,
+                Estado = cotizacion.Estado,
+                Observaciones = cotizacion.Observaciones,
+                Detalles = cotizacion.Detalles.Select(d => new DetalleCotizacionResponseDto
+                {
+                    Id = d.Id,
+                    ProductoId = d.ProductoId,
+                    Descripcion = d.Descripcion,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal,
+                    NombreProducto = d.Producto?.Nombre
+                }).ToList()
+            };
         }
 
-        public async Task<List<Cotizacion>> ObtenerCotizacionesPorUsuarioAsync(string usuarioId)
+        public async Task<List<CotizacionResponseDto>> ObtenerCotizacionesPorUsuarioAsync(string usuarioId)
         {
-            return await _context.Cotizaciones
+            var cotizaciones = await _context.Cotizaciones
                 .Include(c => c.Detalles)
                 .ThenInclude(d => d.Producto)
                 .Where(c => c.UsuarioId == usuarioId)
                 .OrderByDescending(c => c.FechaCotizacion)
                 .ToListAsync();
+
+            return cotizaciones.Select(c => new CotizacionResponseDto
+            {
+                Id = c.Id,
+                NumeroCotizacion = c.NumeroCotizacion,
+                UsuarioId = c.UsuarioId,
+                NombreCliente = c.NombreCliente,
+                EmailCliente = c.EmailCliente,
+                TelefonoCliente = c.TelefonoCliente,
+                DireccionInstalacion = c.DireccionInstalacion,
+                AreaCultivo = c.AreaCultivo,
+                TipoCultivo = c.TipoCultivo,
+                TipoSuelo = c.TipoSuelo,
+                FuenteAguaDisponible = c.FuenteAguaDisponible,
+                EnergiaElectricaDisponible = c.EnergiaElectricaDisponible,
+                RequierimientosEspeciales = c.RequierimientosEspeciales,
+                Subtotal = c.Subtotal,
+                PorcentajeImpuesto = c.PorcentajeImpuesto,
+                Impuestos = c.Impuestos,
+                Total = c.Total,
+                FechaCotizacion = c.FechaCotizacion,
+                FechaVencimiento = c.FechaVencimiento,
+                Estado = c.Estado,
+                Observaciones = c.Observaciones,
+                Detalles = c.Detalles.Select(d => new DetalleCotizacionResponseDto
+                {
+                    Id = d.Id,
+                    ProductoId = d.ProductoId,
+                    Descripcion = d.Descripcion,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal,
+                    NombreProducto = d.Producto?.Nombre
+                }).ToList()
+            }).ToList();
         }
 
         public async Task<bool> ActualizarEstadoCotizacionAsync(int id, string estado)

@@ -165,14 +165,7 @@ namespace SmartAgro.API.Services
                             <span class='info-label'>Email:</span>
                             <span class='info-value'>{solicitud.Email}</span>
                         </div>
-                        <div class='info-row'>
-                            <span class='info-label'>Teléfono:</span>
-                            <span class='info-value'>{solicitud.Telefono ?? "No proporcionado"}</span>
-                        </div>
-                        <div class='info-row'>
-                            <span class='info-label'>Empresa:</span>
-                            <span class='info-value'>{solicitud.Empresa ?? "No proporcionada"}</span>
-                        </div>
+                        
                         <div class='info-row'>
                             <span class='info-label'>Fecha:</span>
                             <span class='info-value'>{solicitud.FechaSolicitud:dd/MM/yyyy HH:mm}</span>
@@ -283,7 +276,6 @@ namespace SmartAgro.API.Services
                     IsBodyHtml = true
                 };
 
-                // ✅ CAMBIO: Usar el AdminEmail de configuración
                 var adminEmail = emailSettings["AdminEmail"] ?? emailSettings["SenderEmail"];
                 mailMessage.To.Add(adminEmail!);
 

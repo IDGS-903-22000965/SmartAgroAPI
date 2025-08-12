@@ -164,7 +164,7 @@ namespace SmartAgro.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Cantidad")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<decimal>("CostoUnitario")
                         .HasColumnType("decimal(18,2)");
@@ -187,7 +187,8 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MateriaPrimaId");
+                    b.HasIndex("MateriaPrimaId", "Fecha")
+                        .HasDatabaseName("IX_MovimientoStock_MateriaPrima_Fecha");
 
                     b.ToTable("MovimientosStock");
                 });
@@ -201,19 +202,13 @@ namespace SmartAgro.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Aprobado")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<int>("Calificacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(5);
+                        .HasColumnType("int");
 
                     b.Property<string>("Contenido")
                         .IsRequired()
@@ -221,9 +216,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("FechaComentario")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaRespuesta")
                         .HasColumnType("datetime2");
@@ -250,10 +243,7 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasIndex("VentaId");
 
-                    b.ToTable("Comentarios", t =>
-                        {
-                            t.HasCheckConstraint("CK_Comentario_Calificacion", "[Calificacion] >= 1 AND [Calificacion] <= 5");
-                        });
+                    b.ToTable("Comentarios");
                 });
 
             modelBuilder.Entity("SmartAgro.Models.Entities.CompraProveedor", b =>
@@ -270,9 +260,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("FechaCompra")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("NumeroCompra")
                         .IsRequired()
@@ -290,9 +278,6 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NumeroCompra")
-                        .IsUnique();
 
                     b.HasIndex("ProveedorId");
 
@@ -328,9 +313,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("FechaCotizacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaVencimiento")
                         .HasColumnType("datetime2");
@@ -384,9 +367,6 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NumeroCotizacion")
-                        .IsUnique();
 
                     b.HasIndex("UsuarioId");
 
@@ -506,9 +486,7 @@ namespace SmartAgro.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("CostoUnitario")
                         .HasColumnType("decimal(18,2)");
@@ -540,10 +518,6 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.HasIndex("Nombre", "ProveedorId")
-                        .IsUnique()
-                        .HasFilter("[Activo] = 1");
-
                     b.ToTable("MateriasPrimas");
                 });
 
@@ -556,9 +530,7 @@ namespace SmartAgro.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Beneficios")
                         .HasMaxLength(1000)
@@ -577,9 +549,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ImagenPrincipal")
                         .HasMaxLength(500)
@@ -608,9 +578,6 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique();
 
                     b.ToTable("Productos");
                 });
@@ -646,8 +613,7 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasIndex("MateriaPrimaId");
 
-                    b.HasIndex("ProductoId", "MateriaPrimaId")
-                        .IsUnique();
+                    b.HasIndex("ProductoId");
 
                     b.ToTable("ProductoMateriasPrimas");
                 });
@@ -661,9 +627,7 @@ namespace SmartAgro.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<string>("ContactoPrincipal")
                         .HasMaxLength(100)
@@ -678,9 +642,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("FechaRegistro")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -702,14 +664,6 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasFilter("[Email] IS NOT NULL");
-
-                    b.HasIndex("RFC")
-                        .IsUnique()
-                        .HasFilter("[RFC] IS NOT NULL");
-
                     b.ToTable("Proveedores");
                 });
 
@@ -722,9 +676,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Apellidos")
                         .IsRequired()
@@ -747,9 +699,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("FechaRegistro")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -831,9 +781,7 @@ namespace SmartAgro.Data.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("FechaVenta")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETDATE()");
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("Impuestos")
                         .HasColumnType("decimal(18,2)");
@@ -874,8 +822,12 @@ namespace SmartAgro.Data.Migrations
 
                     b.HasIndex("CotizacionId");
 
+                    b.HasIndex("FechaVenta")
+                        .HasDatabaseName("IX_Venta_FechaVenta");
+
                     b.HasIndex("NumeroVenta")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("IX_Venta_NumeroVenta");
 
                     b.HasIndex("UsuarioId");
 
@@ -955,7 +907,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SmartAgro.Models.Entities.Venta", null)
@@ -972,7 +924,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.Proveedor", "Proveedor")
                         .WithMany("Compras")
                         .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Proveedor");
@@ -999,7 +951,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.MateriaPrima", "MateriaPrima")
                         .WithMany("DetallesCompra")
                         .HasForeignKey("MateriaPrimaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CompraProveedor");
@@ -1018,7 +970,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.Producto", "Producto")
                         .WithMany("DetallesCotizacion")
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Cotizacion");
@@ -1031,7 +983,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.Producto", "Producto")
                         .WithMany("DetallesVenta")
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SmartAgro.Models.Entities.Venta", "Venta")
@@ -1061,7 +1013,7 @@ namespace SmartAgro.Data.Migrations
                     b.HasOne("SmartAgro.Models.Entities.MateriaPrima", "MateriaPrima")
                         .WithMany("ProductoMateriasPrimas")
                         .HasForeignKey("MateriaPrimaId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SmartAgro.Models.Entities.Producto", "Producto")

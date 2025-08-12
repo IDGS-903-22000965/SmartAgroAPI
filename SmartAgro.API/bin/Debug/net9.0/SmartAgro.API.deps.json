@@ -1195,6 +1195,7 @@
       },
       "SmartAgro.Models/1.0.0": {
         "dependencies": {
+          "Microsoft.AspNetCore.Http.Abstractions": "2.3.0",
           "Microsoft.Extensions.Identity.Stores": "9.0.7"
         },
         "runtime": {

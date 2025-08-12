@@ -24,6 +24,35 @@ namespace SmartAgro.API.Controllers
             _logger = logger;
         }
 
+        [HttpGet("client/resources")]
+        [Authorize]
+        public async Task<IActionResult> GetClientProductResources()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var productosConVenta = await _context.Ventas
+                .Where(v => v.UsuarioId == userId)
+                .SelectMany(v => v.Detalles)
+                .Select(d => d.ProductoId)
+                .Distinct()
+                .ToListAsync();
+
+            var recursos = await _context.ProductoDocumentos
+                .Where(d => productosConVenta.Contains(d.ProductoId) && d.EsVisibleParaCliente)
+                .Select(d => new
+                {
+                    ProductoId = d.ProductoId,
+                    Titulo = d.Titulo,
+                    Tipo = d.Tipo,
+                    Url = d.Url
+                })
+                .ToListAsync();
+
+            return Ok(new { success = true, data = recursos });
+        }
+
         /// <summary>
         /// Obtiene todos los recursos disponibles para los productos comprados por el cliente
         /// </summary>
@@ -42,34 +71,42 @@ namespace SmartAgro.API.Controllers
                     .Include(d => d.Producto)
                     .Include(d => d.Venta)
                     .GroupBy(d => d.ProductoId)
-                    .Select(g => new ClientProductResourceDto
-                    {
-                        ProductoId = g.Key,
-                        NombreProducto = g.First().Producto.Nombre,
-                        DescripcionProducto = g.First().Producto.Descripcion,
-                        DescripcionDetallada = g.First().Producto.DescripcionDetallada,
-                        ImagenPrincipal = g.First().Producto.ImagenPrincipal,
-                        ImagenesSecundarias = DeserializeStringList(g.First().Producto.ImagenesSecundarias),
-                        VideoDemo = g.First().Producto.VideoDemo,
-                        Caracteristicas = DeserializeStringList(g.First().Producto.Caracteristicas),
-                        Beneficios = DeserializeStringList(g.First().Producto.Beneficios),
-
-                        // Información de compra
-                        PrimeraCompra = g.Min(d => d.Venta.FechaVenta),
-                        UltimaCompra = g.Max(d => d.Venta.FechaVenta),
-                        TotalComprado = g.Sum(d => d.Cantidad),
-
-                        // Recursos y documentación
-                        ManualesDisponibles = GetManualesParaProducto(g.Key),
-                        GuiasMantenimiento = GetGuiasMantenimientoParaProducto(g.Key),
-                        VideosTutoriales = GetVideosTutorialesParaProducto(g.Key),
-                        DocumentosTecnicos = GetDocumentosTecnicosParaProducto(g.Key),
-                        LinksUtiles = GetLinksUtilesParaProducto(g.Key)
-                    })
-                    .OrderByDescending(p => p.UltimaCompra)
                     .ToListAsync();
 
-                return Ok(new { success = true, data = ownedProducts });
+                var result = new List<ClientProductResourceDto>();
+
+                foreach (var group in ownedProducts)
+                {
+                    var firstItem = group.First();
+                    var productDto = new ClientProductResourceDto
+                    {
+                        ProductoId = group.Key,
+                        NombreProducto = firstItem.Producto.Nombre,
+                        DescripcionProducto = firstItem.Producto.Descripcion,
+                        DescripcionDetallada = firstItem.Producto.DescripcionDetallada,
+                        ImagenPrincipal = firstItem.Producto.ImagenPrincipal,
+                        ImagenesSecundarias = DeserializeStringList(firstItem.Producto.ImagenesSecundarias),
+                        VideoDemo = firstItem.Producto.VideoDemo,
+                        Caracteristicas = DeserializeStringList(firstItem.Producto.Caracteristicas),
+                        Beneficios = DeserializeStringList(firstItem.Producto.Beneficios),
+
+                        // Información de compra
+                        PrimeraCompra = group.Min(d => d.Venta.FechaVenta),
+                        UltimaCompra = group.Max(d => d.Venta.FechaVenta),
+                        TotalComprado = group.Sum(d => d.Cantidad),
+
+                        // Recursos y documentación - ACTUALIZADO PARA USAR DATOS REALES
+                        ManualesDisponibles = await GetManualesParaProducto(group.Key),
+                        GuiasMantenimiento = await GetGuiasMantenimientoParaProducto(group.Key),
+                        VideosTutoriales = await GetVideosTutorialesParaProducto(group.Key),
+                        DocumentosTecnicos = await GetDocumentosTecnicosParaProducto(group.Key),
+                        LinksUtiles = await GetLinksUtilesParaProducto(group.Key)
+                    };
+
+                    result.Add(productDto);
+                }
+
+                return Ok(new { success = true, data = result.OrderByDescending(p => p.UltimaCompra) });
             }
             catch (Exception ex)
             {
@@ -122,22 +159,22 @@ namespace SmartAgro.API.Controllers
                         VideoDemo = producto.VideoDemo
                     },
 
-                    // Recursos organizados por categoría
+                    // Recursos organizados por categoría - ACTUALIZADO PARA USAR DATOS REALES
                     Documentacion = new ProductDocumentationDto
                     {
-                        ManualesUsuario = GetManualesParaProducto(productId),
-                        GuiasInstalacion = GetGuiasInstalacionParaProducto(productId),
-                        GuiasMantenimiento = GetGuiasMantenimientoParaProducto(productId),
-                        EspecificacionesTecnicas = GetEspecificacionesTecnicasParaProducto(productId),
-                        DiagramasEsquemas = GetDiagramasParaProducto(productId)
+                        ManualesUsuario = await GetManualesParaProducto(productId),
+                        GuiasInstalacion = await GetGuiasInstalacionParaProducto(productId),
+                        GuiasMantenimiento = await GetGuiasMantenimientoParaProducto(productId),
+                        EspecificacionesTecnicas = await GetEspecificacionesTecnicasParaProducto(productId),
+                        DiagramasEsquemas = await GetDiagramasParaProducto(productId)
                     },
 
                     MultimediaResources = new ProductMultimediaDto
                     {
-                        VideosTutoriales = GetVideosTutorialesParaProducto(productId),
-                        VideosMantenimiento = GetVideosMantenimientoParaProducto(productId),
-                        AudioGuias = GetAudioGuiasParaProducto(productId),
-                        ImagenesReferencia = GetImagenesReferenciaParaProducto(productId)
+                        VideosTutoriales = await GetVideosTutorialesParaProducto(productId),
+                        VideosMantenimiento = await GetVideosMantenimientoParaProducto(productId),
+                        AudioGuias = await GetAudioGuiasParaProducto(productId),
+                        ImagenesReferencia = await GetImagenesReferenciaParaProducto(productId)
                     },
 
                     SoporteTecnico = new ProductSupportDto
@@ -145,7 +182,7 @@ namespace SmartAgro.API.Controllers
                         ContactoSoporte = GetContactoSoporteParaProducto(productId),
                         FAQs = GetFAQsParaProducto(productId),
                         SolucionProblemas = GetSolucionProblemasParaProducto(productId),
-                        LinksUtiles = GetLinksUtilesParaProducto(productId)
+                        LinksUtiles = await GetLinksUtilesParaProducto(productId)
                     }
                 };
 
@@ -225,230 +262,208 @@ namespace SmartAgro.API.Controllers
             }
         }
 
-        #region Métodos auxiliares para obtener recursos (estos pueden ser configurados por los administradores)
+        #region Métodos auxiliares actualizados para usar ProductoDocumentos de la base de datos
 
-        private List<ResourceItemDto> GetManualesParaProducto(int productId)
+        private async Task<List<ResourceItemDto>> GetManualesParaProducto(int productId)
         {
-            // En una implementación real, estos datos vendrían de la base de datos
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           (d.Tipo == "Manual" || d.Tipo == "Guia"))
+                .Select(d => new ResourceItemDto
                 {
-                    Titulo = "Manual de Usuario SmartAgro IoT",
-                    Descripcion = "Guía completa para el uso del sistema de riego inteligente",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/manuals/smartagro-manual-usuario.pdf",
-                    Tamano  = "2.5 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-30)
-                },
-                new ResourceItemDto
-                {
-                    Titulo = "Guía de Inicio Rápido",
-                    Descripcion = "Pasos básicos para configurar tu sistema",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/manuals/guia-inicio-rapido.pdf",
-                    Tamano = "1.2 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-15)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetGuiasMantenimientoParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Mantenimiento Preventivo Mensual",
-                    Descripcion = "Tareas de mantenimiento a realizar cada mes",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/maintenance/mantenimiento-mensual.pdf",
-                    Tamano = "800 KB",
-                    FechaActualizacion = DateTime.Now.AddDays(-20)
-                },
-                new ResourceItemDto
-                {
-                    Titulo = "Limpieza de Sensores",
-                    Descripcion = "Procedimiento para limpieza de sensores IoT",
-                    TipoRecurso = "Video",
-                    Url = "/resources/videos/limpieza-sensores.mp4",
-                    Tamano = "15 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-10)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetVideosTutorialesParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Configuración Inicial del Sistema",
-                    Descripcion = "Video tutorial paso a paso para configurar tu sistema SmartAgro",
-                    TipoRecurso = "Video",
-                    Url = "/resources/videos/configuracion-inicial.mp4",
-                    Tamano = "25 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-5)
-                },
-                new ResourceItemDto
-                {
-                    Titulo = "Uso de la Aplicación Móvil",
-                    Descripcion = "Cómo utilizar la app móvil para controlar tu sistema",
-                    TipoRecurso = "Video",
-                    Url = "/resources/videos/app-movil-tutorial.mp4",
-                    Tamano = "18 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-3)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetDocumentosTecnicosParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Especificaciones Técnicas Completas",
-                    Descripcion = "Detalle completo de especificaciones técnicas del sistema",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/technical/especificaciones-tecnicas.pdf",
-                    Tamano = "3.2 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-45)
-                },
-                new ResourceItemDto
-                {
-                    Titulo = "Diagramas de Conexión",
-                    Descripcion = "Esquemas eléctricos y de conexión del sistema",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/technical/diagramas-conexion.pdf",
-                    Tamano = "1.8 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-30)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetLinksUtilesParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Portal de Soporte Online",
-                    Descripcion = "Acceso al portal de soporte técnico 24/7",
-                    TipoRecurso = "Link",
-                    Url = "https://soporte.smartagro.com",
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
                     Tamano = "",
-                    FechaActualizacion = DateTime.Now.AddDays(-1)
-                },
-                new ResourceItemDto
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetGuiasMantenimientoParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Mantenimiento")
+                .Select(d => new ResourceItemDto
                 {
-                    Titulo = "Comunidad de Usuarios",
-                    Descripcion = "Foro de usuarios para compartir experiencias",
-                    TipoRecurso = "Link",
-                    Url = "https://comunidad.smartagro.com",
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
                     Tamano = "",
-                    FechaActualizacion = DateTime.Now.AddDays(-2)
-                }
-            };
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
         }
 
-        private List<ResourceItemDto> GetGuiasInstalacionParaProducto(int productId)
+        private async Task<List<ResourceItemDto>> GetVideosTutorialesParaProducto(int productId)
         {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Video")
+                .Select(d => new ResourceItemDto
                 {
-                    Titulo = "Guía de Instalación Paso a Paso",
-                    Descripcion = "Instrucciones detalladas para la instalación del sistema",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/installation/guia-instalacion.pdf",
-                    Tamano = "4.1 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-60)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetEspecificacionesTecnicasParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Ficha Técnica del Producto",
-                    Descripcion = "Especificaciones técnicas resumidas",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/specs/ficha-tecnica.pdf",
-                    Tamano = "1.5 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-30)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetDiagramasParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Diagrama del Sistema Completo",
-                    Descripcion = "Esquema general del sistema de riego",
-                    TipoRecurso = "PDF",
-                    Url = "/resources/diagrams/sistema-completo.pdf",
-                    Tamano = "2.3 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-45)
-                }
-            };
-        }
-
-        private List<ResourceItemDto> GetVideosMantenimientoParaProducto(int productId)
-        {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
-                {
-                    Titulo = "Mantenimiento Trimestral",
-                    Descripcion = "Video guía para mantenimiento cada 3 meses",
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
                     TipoRecurso = "Video",
-                    Url = "/resources/videos/mantenimiento-trimestral.mp4",
-                    Tamano = "22 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-20)
-                }
-            };
+                    Url = d.Url,
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
         }
 
-        private List<ResourceItemDto> GetAudioGuiasParaProducto(int productId)
+        private async Task<List<ResourceItemDto>> GetDocumentosTecnicosParaProducto(int productId)
         {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Especificaciones")
+                .Select(d => new ResourceItemDto
                 {
-                    Titulo = "Guía de Audio para Configuración",
-                    Descripcion = "Instrucciones de voz para configuración básica",
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetLinksUtilesParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           (d.Tipo == "Tutorial" || d.Tipo == "Soporte" || d.Tipo == "Comunidad"))
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = "Link",
+                    Url = d.Url,
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetGuiasInstalacionParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Guia")
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetEspecificacionesTecnicasParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Especificaciones")
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetDiagramasParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Diagrama")
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = d.Tipo,
+                    Url = d.Url.StartsWith("http") ? d.Url : $"/api/product-documents/download/{d.Id}",
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetVideosMantenimientoParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Video" &&
+                           d.Titulo.ToLower().Contains("mantenimiento"))
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
+                    TipoRecurso = "Video",
+                    Url = d.Url,
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<ResourceItemDto>> GetAudioGuiasParaProducto(int productId)
+        {
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Audio")
+                .Select(d => new ResourceItemDto
+                {
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
                     TipoRecurso = "Audio",
-                    Url = "/resources/audio/configuracion-basica.mp3",
-                    Tamano = "8 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-25)
-                }
-            };
+                    Url = d.Url,
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
         }
 
-        private List<ResourceItemDto> GetImagenesReferenciaParaProducto(int productId)
+        private async Task<List<ResourceItemDto>> GetImagenesReferenciaParaProducto(int productId)
         {
-            return new List<ResourceItemDto>
-            {
-                new ResourceItemDto
+            return await _context.ProductoDocumentos
+                .Where(d => d.ProductoId == productId &&
+                           d.EsVisibleParaCliente &&
+                           d.Tipo == "Galería")
+                .Select(d => new ResourceItemDto
                 {
-                    Titulo = "Galería de Instalaciones",
-                    Descripcion = "Imágenes de referencia de instalaciones exitosas",
+                    Titulo = d.Titulo,
+                    Descripcion = d.Titulo,
                     TipoRecurso = "Galería",
-                    Url = "/resources/gallery/instalaciones",
-                    Tamano = "5.2 MB",
-                    FechaActualizacion = DateTime.Now.AddDays(-15)
-                }
-            };
+                    Url = d.Url,
+                    Tamano = "",
+                    FechaActualizacion = d.FechaCreacion
+                })
+                .ToListAsync();
         }
 
+        // Métodos auxiliares que permanecen igual (datos estáticos para soporte, etc.)
         private ProductSupportContactDto GetContactoSoporteParaProducto(int productId)
         {
             return new ProductSupportContactDto
@@ -559,7 +574,7 @@ namespace SmartAgro.API.Controllers
     }
 }
 
-// DTOs para recursos del cliente
+// DTOs para recursos del cliente (estos permanecen igual)
 namespace SmartAgro.Models.DTOs
 {
     public class ClientProductResourceDto
